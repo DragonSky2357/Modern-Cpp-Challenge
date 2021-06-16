@@ -10,9 +10,9 @@ int main(void) {
 	std::cin >> limit;
 
 	unsigned long long sum = 0;
-	for (unsigned int i = 3; i < limit; ++i) 
+	for (unsigned int i = 3; i < limit; ++i)
 		if (i % 3 == 0 || i % 5 == 0) sum += i;
-	
+
 	std::cout << "sum=" << sum << std::endl;
 }
 */
@@ -210,7 +210,7 @@ std::vector<unsigned long long> prime_factors(unsigned long long n) {
 		}
 	}
 
-	if (n > 2) 
+	if (n > 2)
 		factors.push_back(n);
 
 	return factors;
@@ -254,7 +254,7 @@ int main(void) {
 		auto decg = gray_decode(encg);
 
 		std::cout << n << "\t" << to_binary(n, 5) << "\t" << to_binary(encg, 5) << "\t" << decg << "\n";
-	}	
+	}
 }
 */
 
@@ -300,11 +300,11 @@ std::pair<unsigned long long, long>longest_collatz(unsigned const long long limi
 	long length = 0;
 	unsigned long long number = 0;
 	std::vector<int> cache(limit + 1, 0);
-	
+
 	for (unsigned long long i = 2; i <= limit; i++) {
 		auto n = i;
 		long steps = 0;
-		
+
 		while (n != 1 && n >= i) {
 			if ((n % 2) == 0) n /= 2;
 			else n = n * 3 + 1;
@@ -657,7 +657,7 @@ int main(void) {
 	std::vector<int> v;
 	push_back(v, 1, 2, 3, 4);
 	std::copy(std::begin(v), std::end(v), std::ostream_iterator<int>(std::cout, " "));
-	
+
 	std::list<int> l;
 	push_back(l, 1, 2, 3, 4);
 	std::copy(std::begin(l), std::end(l), std::ostream_iterator<int>(std::cout, " "));
@@ -689,7 +689,7 @@ bool contains_none(const C& c, T&&... value) {
 */
 
 /*
-// 21 시스템 핸들 래퍼 
+// 21 시스템 핸들 래퍼
 
 #include<Windows.h>
 #include<vector>
@@ -764,7 +764,7 @@ public:
 		}
 		return static_cast
 	}
-	
+
 	void swap(unique_handle<Traits>& other) noexcept {
 		std::swap(m_value, other.m_value);
 	}
@@ -1036,7 +1036,7 @@ tstring<Elem> capitalize(const tstring<Elem>& text) {
 
 int main(void) {
 	using namespace std::string_literals;
-	
+
 	assert("The C++ Challenger"s == capitalize("the c== challenger"s));
 	assert("This Is An Example, Should Work!"s == capitalize(L"THIS IS an Example, should wORK!"));
 }
@@ -1094,6 +1094,7 @@ int main() {
 }
 */
 
+/*
 // 27 구획 문자 리스트를 바탕으로 문자열을 토큰으로 분리
 
 #include <string>
@@ -1143,4 +1144,556 @@ int main() {
 
 	assert(expected == split("this is a sample"s, ' '));
 	assert(expected == split("this,is a.sample!!"s, ",.! "s));
+}
+*/
+
+/*
+// 28 가장 긴 회문 부분 문자열 출력
+
+#include<string>
+#include<string_view>
+#include<vector>
+#include<assert.h>
+
+std::string longest_palindrome(std::string_view str) {
+	const size_t len = str.size();
+	size_t longestBegin = 0;
+	size_t maxLen = 1;
+
+	std::vector<bool> table(len * len, false);
+
+	for (size_t i = 0; i < len; i++)
+		table[i * len + i] = true;
+
+	for (size_t i = 0; i < len - 1; i++) {
+		if (str[i] == str[i + 1]) {
+			table[i * len + i + 1] = true;
+
+			if (maxLen < 2) {
+				longestBegin = i;
+				maxLen = 2;
+			}
+		}
+	}
+
+	for (size_t k = 3; k <= len; k++) {
+		for (size_t i = 0; i < len - k + 1; i++) {
+			size_t j = i + k - 1;
+			if (str[i] == str[j] && table[(i + 1) * len + j - 1]) {
+				table[i * len + j] = true;
+				if (maxLen < k) {
+					longestBegin = i;
+					maxLen = k;
+				}
+			}
+		}
+	}
+
+	return std::string(str.substr(longestBegin, maxLen));
+}
+
+int main(void) {
+	using namespace std::string_literals;
+
+	assert(longest_palindrome("sahararahnide") == "hararah");
+	assert(longest_palindrome("level") == "level");
+	assert(longest_palindrome("s") == "s");
+	assert(longest_palindrome("aabbcc") == "aa");
+	assert(longest_palindrome("abab") == "aba");
+}
+*/
+
+/*
+// 29 차량 번호판 검증
+
+#include <string>
+#include <string_view>
+#include <regex>
+#include <assert.h>
+
+bool validate_license_plate_format(std::string_view str) {
+	std::regex rx(R"([A-Z]{3}-[A-Z]{2} \d{3,4})");
+	return std::regex_match(str.data(), rx);
+}
+
+std::vector<std::string> extract_license_plate_numbers(std::string const& str) {
+	std::regex rx(R"(([A-Z]{3}-[A-Z]{2} \d{3,4})*)");
+	std::smatch match;
+	std::vector<std::string> results;
+
+	for (auto i = std::sregex_iterator(std::cbegin(str), std::cend(str), rx);
+		i != std::sregex_iterator(); ++i) {
+		if ((*i)[1].matched)
+			results.push_back(i->str());
+	}
+
+	return results;
+}
+
+int main() {
+	assert(validate_license_plate_format("ABC-DE 123"));
+	assert(validate_license_plate_format("ABC-DE 1234"));
+	assert(!validate_license_plate_format("ABC-DE 12345"));
+	assert(!validate_license_plate_format("abc-de 1234"));
+
+	std::vector<std::string> expected{ "AAA-AA 123", "ABC-DE 1234", "XYZ-WW 0001" };
+	std::string text("AAA-AA 123qwe-ty 1234  ABC-DE 123456..XYZ-WW 0001");
+	assert(expected == extract_license_plate_numbers(text));
+}
+*/
+
+/*
+// 30 URL 추출하기
+
+#include<string>
+#include<string_view>
+#include<regex>
+#include<assert.h>
+
+#ifdef USE_BOOST_OPTIONAL
+#  include <boost/optional.hpp>
+using boost::optional;
+#else
+#  include <optional>
+using std::optional;
+#endif
+
+struct uri_parts {
+	std::string protocol;
+	std::string domain;
+	optional<int> port;
+	optional<std::string> path;
+	optional<std::string> query;
+	optional<std::string> fragment;
+};
+
+optional<uri_parts> parse_uri(std::string uri) {
+	std::regex rx(R"(^(\w+):\/\/([\w.-]+)(:(\d+))?([\w\/\.]+)?(\?([\w=&]*)(#?(\w+))?)?$)");
+	auto matches = std::smatch{};
+
+	if (std::regex_match(uri, matches, rx)) {
+		if (matches[1].matched && matches[2].matched) {
+			uri_parts parts;
+			parts.protocol = matches[1].str();
+			parts.domain = matches[2].str();
+			if (matches[4].matched) parts.port = std::stoi(matches[4]);
+			if (matches[5].matched) parts.path = matches[5];
+			if (matches[7].matched) parts.query = matches[7];
+			if (matches[9].matched) parts.fragment = matches[9];
+
+			return parts;
+		}
+	}
+	return {};
+}
+
+int main(void) {
+	auto p1 = parse_uri("https://packt.com");
+	assert(p1);
+	assert(p1->protocol == "https");
+	assert(p1->domain == "packt.com");
+	assert(!p1->port);
+	assert(!p1->path);
+	assert(!p1->query);
+	assert(!p1->fragment);
+
+	auto p2 = parse_uri("https://bbc.com:80/en/index.html?lite=true#ui");
+	assert(p2);
+	assert(p2->protocol == "https");
+	assert(p2->domain == "bbc.com");
+	assert(p2->port == 80);
+	assert(p2->path.value() == "/en/index.html");
+	assert(p2->query.value() == "lite=true");
+	assert(p2->fragment.value() == "ui");
+
+}
+*/
+
+/*
+// 31 날짜를 문자열로 변환하기
+
+#include<string>
+#include<string_view>
+#include<regex>
+#include <assert.h>
+
+std::string transform_date(std::string_view text) {
+	auto rx = std::regex{ R"((\d{1,2})(\.|-|/)(\d{1,2})(\.|-|/)(\d{4}))" };
+	return std::regex_replace(text.data(), rx, R"($5-$3-$1)");
+}
+
+int main(void) {
+	using namespace std::string_literals;
+
+	assert(
+		transform_date("today is 01.12.2017!"s) ==
+		"today is 2017-12-01!"s);
+}
+*/
+
+/*
+// 32 파스칼의 삼각형
+
+#include <string>
+#include <iostream>
+#include <cmath>
+
+unsigned int number_of_digits(unsigned const int i) {
+	return i > 0 ? (int)log10((double)i) + 1 : 1;
+}
+
+void print_pascal_triangle(int const n) {
+	for (int i = 0; i < n; i++) {
+		auto x = 1;
+		std::cout << std::string((n - i - 1) * (n / 2), ' ');
+		for (int j = 0; j <= i; j++) {
+			auto y = x;
+			x = x * (i - j) / (j + 1);
+			auto maxlen = number_of_digits(x) - 1;
+			std::cout << y << std::string(n - 1 - maxlen - n % 2, ' ');
+		}
+		std::cout << std::endl;
+	}
+}
+
+int main() {
+	int n = 0;
+	std::cout << "Levels (up to 10): ";
+	std::cin >> n;
+	if (n > 10)
+		std::cout << "Value too large" << std::endl;
+	else
+		print_pascal_triangle(n);
+}
+*/
+
+/*
+// 33 프로세스를 표로 출력하기
+
+#include<iostream>
+#include<iomanip>
+#include<string>
+#include<vector>
+#include<algorithm>
+
+enum class procstatus{suspended,running};
+std::string status_to_string(const procstatus status) {
+	if (status == procstatus::suspended) return "suspended";
+	else return "running";
+}
+
+enum class platforms {p32bit, p64bit};
+std::string platform_to_string(const platforms platform) {
+	if (platform == platforms::p32bit) return "32-bit";
+	else return "64-bit";
+}
+
+struct procinfo {
+	int id;
+	std::string name;
+	procstatus status;
+	std::string account;
+	size_t memory;
+	platforms platform;
+};
+
+void print_processes(std::vector<procinfo> processes) {
+	std::sort(std::begin(processes), std::end(processes), 
+		[](const procinfo& p1, const procinfo& p2) {return p1.name < p2.name; });
+
+	for (auto const& pi : processes) {
+		std::cout << std::left << std::setw(25) << std::setfill(' ') << pi.name;
+		std::cout << std::left << std::setw(8) << std::setfill(' ') << pi.id;
+		std::cout << std::left << std::setw(12) << std::setfill(' ') << status_to_string(pi.status);
+		std::cout << std::left << std::setw(15) << std::setfill(' ') << pi.account;
+		std::cout << std::right << std::setw(10) << std::setfill(' ') << (int)(pi.memory / 1024);
+		std::cout << std::left << ' ' << platform_to_string(pi.platform);
+		std::cout << std::endl;
+	}
+}
+
+int main(void) {
+	using namespace std::string_literals;
+
+	std::vector<procinfo> processes
+	{
+	   {512, "cmd.exe"s, procstatus::running, "SYSTEM"s, 148293, platforms::p64bit },
+	   {1044, "chrome.exe"s, procstatus::running, "marius.bancila"s, 25180454, platforms::p32bit},
+	   {7108, "explorer.exe"s, procstatus::running, "marius.bancila"s, 2952943, platforms::p64bit },
+	   {10100, "chrome.exe"s, procstatus::running, "marius.bancila"s, 227756123, platforms::p32bit},
+	   {22456, "skype.exe"s, procstatus::suspended, "marius.bancila"s, 16870123, platforms::p64bit },
+	};
+
+	print_processes(processes);
+}
+*/
+
+/*
+// 34 텍스트 파일에서 빈 줄 제거하기
+
+#include<fstream>
+#include<string>
+
+#ifdef USE_BOOST_FILESYSTEM
+#  include <boost/filesystem/path.hpp>
+#  include <boost/filesystem/operations.hpp>
+namespace fs = boost::filesystem;
+#else
+#  include <filesystem>
+#  ifdef FILESYSTEM_EXPERIMENTAL
+namespace fs = std::experimental::filesystem;
+#  else
+namespace fs = std::filesystem;
+#  endif
+#endif
+
+void remove_empty_lines(fs::path filepath) {
+	std::ifstream filein(filepath.native(), std::ios::in);
+	if (!filein.is_open())
+		throw std::runtime_error("cannot open input file");
+	
+	auto temppath = fs::temp_directory_path() / "temp.txt";
+	std::ofstream fileout(temppath.native(), std::ios::out | std::ios::trunc);
+	if (!fileout.is_open())
+		throw std::runtime_error("cannot create temporay file");
+
+	std::string line;
+	while (std::getline(filein, line)) {
+		if (line.length() > 0 && line.find_first_not_of(' ') != line.npos)
+			fileout << line << '\n';
+	}
+
+	filein.close();
+	fileout.close();
+
+	fs::remove(filepath);
+	fs::rename(temppath, filepath);
+}
+
+int main(void) {
+	remove_empty_lines("sample34.txt");
+}
+*/
+
+/*
+// 35 디렉토리 크기 계산
+
+#include<iostream>
+#include<numeric>
+#include<string>
+
+#ifdef USE_BOOST_FILESYSTEM
+#  include <boost/filesystem/path.hpp>
+#  include <boost/filesystem/operations.hpp>
+namespace fs = boost::filesystem;
+#else
+#  include <filesystem>
+#  ifdef FILESYSTEM_EXPERIMENTAL
+namespace fs = std::experimental::filesystem;
+#  else
+namespace fs = std::filesystem;
+#  endif
+#endif
+
+std::uintmax_t get_directory_size(const fs::path& dir, const bool follow_symlinks = false) {
+#ifdef USE_BOOST_FILESYSTEM
+	auto iterator = fs::recursive_directory_iterator(
+		dir,
+		follow_symlinks ? fs::symlink_option::recurse : fs::symlink_option::none);
+#else
+	auto iterator = fs::recursive_directory_iterator(
+		dir,
+		follow_symlinks ? fs::directory_options::follow_directory_symlink : fs::directory_options::none);
+#endif
+
+	return std::accumulate(
+		fs::begin(iterator), fs::end(iterator),0ull,
+		[](const std::uintmax_t total,
+			const fs::directory_entry& entry) {
+				return total + (fs::is_regular_file(entry) ?
+					fs::file_size(entry.path()) : 0);
+		});
+}
+
+int main(void) {
+	std::string path;
+	std::cout << "Path: ";
+	std::cin >> path;
+	std::cout << "Size: " << get_directory_size(path) << std::endl;
+}
+*/
+
+/*
+// 36 주어진 날짜보다 오래된 파일 삭제
+
+#include <iostream>
+#include <chrono>
+
+#ifdef USE_BOOST_FILESYSTEM
+#  include <boost/filesystem/path.hpp>
+#  include <boost/filesystem/operations.hpp>
+namespace fs = boost::filesystem;
+#else
+#  include <filesystem>
+#  ifdef FILESYSTEM_EXPERIMENTAL
+namespace fs = std::experimental::filesystem;
+#  else
+namespace fs = std::filesystem;
+#  endif
+#endif
+
+namespace ch = std::chrono;
+
+template <typename Duration>
+bool is_older_than(const fs::path& path, const Duration duration) {
+	auto lastwrite = fs::last_write_time(path);
+#ifdef USE_BOOST_FILESYSTEM
+	auto ftimeduration = ch::system_clock::from_time_t(lastwrite).time_since_epoch();
+#else
+	auto ftimeduration = lastwrite.time_since_epoch();
+#endif
+	auto nowduration = (ch::system_clock::now() - duration).time_since_epoch();
+	return ch::duration_cast<Duration>(nowduration - ftimeduration).count() > 0;
+}
+
+template <typename Duration>
+void remove_files_older_than(const fs::path& path, const Duration duration) {
+	try {
+		if (fs::exists(path)) {
+			if (is_older_than(path, duration)) {
+				fs::remove(path);
+			} else if (fs::is_directory(path)) {
+				for (auto const& entry : fs::directory_iterator(path)) {
+					remove_files_older_than(entry.path(), duration);
+				}
+			}
+		}
+	}
+	catch (std::exception const& ex) {
+		std::cerr << ex.what() << std::endl;
+	}
+}
+
+int main() {
+	using namespace std::chrono_literals;
+
+#ifdef _WIN32
+	auto path = R"(..\Test\)";
+#else
+	auto path = R"(../Test/)";
+#endif
+
+	remove_files_older_than(path, 1h + 20min);
+}
+*/
+
+/*
+// 37 디렉토리에서 정규 표현식과 일치하는 파일 찾기
+
+#include <iostream>
+#include <regex>
+#include <vector>
+#include <string>
+#include <string_view>
+#include <functional>
+
+#ifdef USE_BOOST_FILESYSTEM
+#  include <boost/filesystem/path.hpp>
+#  include <boost/filesystem/operations.hpp>
+namespace fs = boost::filesystem;
+#else
+#  include <filesystem>
+#  ifdef FILESYSTEM_EXPERIMENTAL
+namespace fs = std::experimental::filesystem;
+#  else
+namespace fs = std::filesystem;
+#  endif
+#endif
+
+std::vector<fs::directory_entry> find_files(const fs::path& path, std::string_view regex) {
+	std::vector<fs::directory_entry> result;
+	std::regex rx(regex.data());
+
+	std::copy_if(fs::recursive_directory_iterator(path),
+		fs::recursive_directory_iterator(),
+		std::back_inserter(result), [&rx](const fs::directory_entry& entry) {
+			return fs::is_regular_file(entry.path()) && std::regex_match(entry.path().filename().string(), rx);
+		});
+
+	return result;
+}
+
+int main(void) {
+	auto dir = fs::temp_directory_path();
+	auto pattern = R"(wct[0-9a-zA-Z]{3}\.tmp)";
+	auto result = find_files(dir, pattern);
+
+	for (const auto& entry : result)
+		std::cout << entry.path().string() << std::endl;
+}
+*/
+
+// 38 임시 로그 파일
+
+#include <iostream>
+#include <fstream>
+
+#include "uuid.h"
+
+#ifdef USE_BOOST_FILESYSTEM
+#  include <boost/filesystem/path.hpp>
+#  include <boost/filesystem/operations.hpp>
+namespace fs = boost::filesystem;
+#else
+#  include <filesystem>
+#  ifdef FILESYSTEM_EXPERIMENTAL
+namespace fs = std::experimental::filesystem;
+#  else
+namespace fs = std::filesystem;
+#  endif
+#endif
+
+class logger {
+	fs::path       logpath;
+	std::ofstream  logfile;
+public:
+	logger() {
+		auto name = uuids::to_string(uuids::uuid_random_generator{}());
+		logpath = fs::temp_directory_path() / (name + ".tmp");
+		logfile.open(logpath.c_str(), std::ios::out | std::ios::trunc);
+	}
+
+	~logger() noexcept {
+		try {
+			if (logfile.is_open())
+				logfile.close();
+			if (!logpath.empty())
+				fs::remove(logpath);
+		}
+		catch (...) {
+		}
+	}
+
+	void persist(const fs::path& path) {
+		logfile.close();
+		fs::rename(logpath, path);
+		logpath.clear();
+	}
+
+	logger& operator<<(std::string_view message) {
+		logfile << message.data() << '\n';
+		return *this;
+	}
+};
+
+int main() {
+	logger log;
+	try {
+		log << "this is a line" << "and this is another one";
+
+		throw std::runtime_error("error");
+	}
+	catch (...) {
+		log.persist(R"(lastlog.txt)");
+	}
 }
