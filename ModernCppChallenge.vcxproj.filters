@@ -23,5 +23,14 @@
     <ClInclude Include="uuid.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="date.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="iso_week.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="tz.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

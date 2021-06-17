@@ -1,13 +1,2 @@
 ﻿  ModernCppChallenge.cpp
-  The contents of <span> are available only with C++20 or later.
-C:\Users\qkrdy\source\repos\ModernCppChallenge\ModernCppChallenge\uuid.h(59,18): error C2653: 'gsl': 클래스 또는 네임스페이스 이름이 아닙니다.
-C:\Users\qkrdy\source\repos\ModernCppChallenge\ModernCppChallenge\uuid.h(59,23): error C2061: 구문 오류: 식별자 'span'
-C:\Users\qkrdy\source\repos\ModernCppChallenge\ModernCppChallenge\uuid.h(62,22): error C2143: 구문 오류: ';'이(가) '{' 앞에 없습니다.
-C:\Users\qkrdy\source\repos\ModernCppChallenge\ModernCppChallenge\uuid.h(62,22): error C2447: '{': 함수 헤더가 없습니다. 이전 스타일의 형식 목록입니까?
-C:\Users\qkrdy\source\repos\ModernCppChallenge\ModernCppChallenge\uuid.h(296,29): error C2631: 'uuid_variant': 클래스 또는 열거형은 별칭 템플릿에서 정의할 수 없습니다.
-C:\Users\qkrdy\source\repos\ModernCppChallenge\ModernCppChallenge\uuid.h(826,1): error C2988: 템플릿 선언/정의를 인식할 수 없습니다.
-C:\Users\qkrdy\source\repos\ModernCppChallenge\ModernCppChallenge\uuid.h(826,1): error C2059: 구문 오류: '<end Parse>'
-C:\Users\qkrdy\source\repos\ModernCppChallenge\ModernCppChallenge\uuid.h(826,15): error C2143: 구문 오류: ';'이(가) '{' 앞에 없습니다.
-C:\Users\qkrdy\source\repos\ModernCppChallenge\ModernCppChallenge\uuid.h(826,15): error C2447: '{': 함수 헤더가 없습니다. 이전 스타일의 형식 목록입니까?
-C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30037\include\xlocbuf(25,5): error C2631: 'wbuffer_convert': 클래스 또는 열거형은 별칭 템플릿에서 정의할 수 없습니다.
-C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30037\include\xlocmes(20,1): fatal error C1903: 이전 오류를 복구할 수 없습니다. 컴파일이 중지됩니다.
+  ModernCppChallenge.vcxproj -> C:\Users\qkrdy\source\repos\ModernCppChallenge\Debug\ModernCppChallenge.exe

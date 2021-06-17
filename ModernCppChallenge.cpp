@@ -1633,6 +1633,7 @@ int main(void) {
 }
 */
 
+/*
 // 38 임시 로그 파일
 
 #include <iostream>
@@ -1695,5 +1696,329 @@ int main() {
 	}
 	catch (...) {
 		log.persist(R"(lastlog.txt)");
+	}
+}
+*/
+
+/*
+// 39 함수 실행 시간 측정
+
+#include<iostream>
+#include<chrono>
+#include<thread>
+
+template<typename Time = std::chrono::microseconds, 
+	typename Clock = std::chrono::high_resolution_clock>
+	struct perf_timer{
+	template<typename F, typename... Args>
+	static Time duration(F&& f, Args... args) {
+		auto start = Clock::now();
+
+		std::invoke(std::forward<F>(f), std::forward<Args>(args)...);
+
+		auto end = Clock::now();
+
+		return std::chrono::duration_cast<Time>(end - start);
+	}
+};
+
+using namespace std::chrono_literals;
+
+void f() {
+	// simulate work
+	std::this_thread::sleep_for(2s);
+}
+
+void g(const int a, const int b) {
+	// simulate work
+	std::this_thread::sleep_for(1s);
+}
+
+int main(void) {
+	auto t1 = perf_timer<std::chrono::microseconds>::duration(f);
+	auto t2 = perf_timer<std::chrono::milliseconds>::duration(g, 1, 2);
+
+	auto total = std::chrono::duration<double, std::nano>(t1 + t2).count();
+
+	std::cout << total << std::endl;
+}
+*/
+
+/*
+// 40 두 날짜 사이의 날 수를 반환
+#include<iostream>
+#include"date.h"
+
+inline int number_of_days(
+	const int y1, const unsigned int m1, const unsigned int d1,
+	const int y2, const unsigned int m2, const unsigned int d2) 
+{
+	using namespace date;
+
+	return (sys_days{ year{ y1 } / month{ m1 } / day{ d1 } } -
+		sys_days{ year{ y2 } / month{ m2 } / day{ d2 } }).count();
+}
+
+inline int number_of_days(const date::sys_days& first, const date::sys_days& last) {
+	return (last - first).count();
+}
+
+int main(void) {
+	unsigned int y1 = 0, m1 = 0, d1 = 0;
+	std::cout << "First date" << std::endl;
+	std::cout << "Year:"; std::cin >> y1;
+	std::cout << "Month:"; std::cin >> m1;
+	std::cout << "Date:"; std::cin >> d1;
+
+	std::cout << "Second date" << std::endl;
+	unsigned int y2 = 0, m2 = 0, d2 = 0;
+	std::cout << "Year:"; std::cin >> y2;
+	std::cout << "Month:"; std::cin >> m2;
+	std::cout << "Date:"; std::cin >> d2;
+
+	std::cout << "Days between:" << number_of_days(y1, m1, d1, y2, m2, d2) << std::endl;
+
+	using namespace date::literals;
+	std::cout << "Days between:" << number_of_days(2018_y / jun / 1, 15_d / sep / 2018) << std::endl;
+}
+*/
+
+/*
+// 41 주어진 날짜의 요일 찾기
+#include<iostream>
+#include"date.h"
+#include"iso_week.h"
+
+unsigned int week_day(const int y, const unsigned int m, const unsigned int d) {
+	using namespace date;
+
+	if (m < 1 || m>12 || d < 1 || d>31) return 0;
+
+	auto const dt = date::year_month_day{ year{ y }, month{ m }, day{ d } };
+	auto const tiso = iso_week::year_weeknum_weekday{ dt };
+
+	return (unsigned int)tiso.weekday();
+}
+
+int main(void) {
+	int y = 0;
+   unsigned int m = 0, d = 0;
+   std::cout << "Year:"; std::cin >> y;
+   std::cout << "Month:"; std::cin >> m;
+   std::cout << "Day:"; std::cin >> d;
+
+   std::cout << "Day of week:" << week_day(y, m, d) << std::endl;
+}
+*/
+
+/*
+// 42 한 해의 몇 번째 날인지 찾기
+
+#include<iostream>
+#include"date.h"
+#include"iso_week.h"
+
+unsigned int calendar_week(int const y, unsigned int const m, unsigned int const d) {
+	using namespace date;
+
+	if (m < 1 || m > 12 || d < 1 || d > 31) return 0;
+
+	auto const dt = date::year_month_day{ year{ y }, month{ m }, day{ d } };
+	auto const tiso = iso_week::year_weeknum_weekday{ dt };
+
+	return (unsigned int)tiso.weeknum();
+}
+
+int day_of_year(int const y, unsigned int const m, unsigned int const d) {
+	using namespace date;
+
+	if (m < 1 || m > 12 || d < 1 || d > 31) return 0;
+
+	return (sys_days{ year{ y } / month{ m } / day{ d } } -
+		sys_days{ year{ y } / jan / 0 }).count();
+}
+
+int main() {
+	int y = 0;
+	unsigned int m = 0, d = 0;
+	std::cout << "Year:"; std::cin >> y;
+	std::cout << "Month:"; std::cin >> m;
+	std::cout << "Day:"; std::cin >> d;
+
+	std::cout << "Calendar week:" << calendar_week(y, m, d) << std::endl;
+	std::cout << "Day of year:" << day_of_year(y, m, d) << std::endl;
+}
+*/
+
+/*
+// 43 여러 시간대에 걸친 회의 시작 출력
+#include <iostream>
+#include <string>
+#include <vector>
+#include <string_view>
+#include <iomanip>
+#include "date.h"
+#include "tz.h"
+
+namespace ch = std::chrono;
+
+struct user {
+	std::string             Name;
+	date::time_zone const* Zone;
+
+	user(std::string_view name, std::string_view zone)
+		: Name{ name.data() }, Zone(date::locate_zone(zone.data()))
+	{
+	}
+};
+
+template <class Duration, class TimeZonePtr>
+void print_meeting_times(
+	date::zoned_time<Duration, TimeZonePtr> const& time,
+	std::vector<user> const& users) {
+	std::cout
+		<< std::left << std::setw(15) << std::setfill(' ')
+		<< "Local time: "
+		<< time << std::endl;
+
+	for (auto const& user : users) {
+		std::cout
+			<< std::left << std::setw(15) << std::setfill(' ')
+			<< user.Name
+			<< date::zoned_time<Duration, TimeZonePtr>(user.Zone, time)
+			<< std::endl;
+	}
+}
+
+int main() {
+	std::vector<user> users{
+	   user{ "Ildiko", "Europe/Budapest" },
+	   user{ "Jens", "Europe/Berlin" },
+	   user{ "Jane", "America/New_York" }
+	};
+
+	unsigned int h, m;
+	std::cout << "Hour:"; std::cin >> h;
+	std::cout << "Minutes:"; std::cin >> m;
+
+	date::year_month_day today = date::floor<date::days>(ch::system_clock::now());
+
+	auto localtime = date::zoned_time<std::chrono::minutes>(
+		date::current_zone(),
+		static_cast<date::local_days>(today) + ch::hours{ h } + ch::minutes{ m });
+
+	print_meeting_times(localtime, users);
+}
+*/
+
+/*
+// 44 달력 출력
+
+#include <iostream>
+#include <iomanip>
+#include "date.h"
+#include "iso_week.h"
+
+unsigned int week_day(int const y, unsigned int const m, unsigned int const d) {
+	using namespace date;
+
+	if (m < 1 || m > 12 || d < 1 || d > 31) return 0;
+
+	auto const dt = date::year_month_day{ year{ y }, month{ m }, day{ d } };
+	auto const tiso = iso_week::year_weeknum_weekday{ dt };
+
+	return (unsigned int)tiso.weekday();
+}
+
+void print_month_calendar(int const y, unsigned int m) {
+	using namespace date;
+
+	std::cout << "Mon Tue Wed Thu Fri Sat Sun" << std::endl;
+
+	auto first_day_weekday = week_day(y, m, 1);
+	auto last_day = (unsigned int)year_month_day_last(
+		year{ y }, month_day_last{ month{ m } }).day();
+
+	unsigned int index = 1;
+	for (unsigned int day = 1; day < first_day_weekday; ++day, ++index) {
+		std::cout << "    ";
+	}
+
+	for (unsigned int day = 1; day <= last_day; ++day) {
+		std::cout
+			<< std::right << std::setfill(' ') << std::setw(3)
+			<< day << ' ';
+		if (index++ % 7 == 0)
+			std::cout << std::endl;
+	}
+
+	std::cout << std::endl;
+}
+
+int main() {
+	unsigned int y = 0, m = 0;
+	std::cout << "Year:"; std::cin >> y;
+	std::cout << "Month:"; std::cin >> m;
+
+	print_month_calendar(y, m);
+}
+*/
+
+#include<iostream>
+#include<vector>
+#include<algorithm>
+#include<assert.h>
+
+template<class T, class Compare = std::less<typename std::vector<T>::value_type>>
+class priority_queue {
+	typedef typename std::vector<T>::value_type value_type;
+	typedef typename std::vector<T>::size_type size_type;
+	typedef typename std::vector<T>::reference reference;
+	typedef typename std::vector<T>::const_reference const_reference;
+public:
+	bool empty() const noexcept { return data.empty(); }
+	size_type size() const noexcept { return data.size(); }
+
+	void push(const value_type& value) {
+		data.push_back(value);
+		std::push_heap(std::begin(data), std::end(data), comparer);
+	}
+
+	void pop() {
+		std::pop_heap(std::begin(data), std::end(data), comparer);
+		data.pop_back();
+	}
+
+	const_reference top() const { return data.front(); }
+
+	void swap(priority_queue& other) noexcept {
+		swap(data, other.data);
+		swap(comparer, other.comparer);
+	}
+
+private:
+	std::vector<T> data;
+	Compare comparer;
+};
+
+template<class T, class Compare>
+void swap(priority_queue<T, Compare>& lhs,
+	priority_queue<T, Compare>& rhs) noexcept(noexcept(lhs.swap(rhs))) 
+{
+	lhs.swap(rhs);
+}
+
+int main(void) {
+	priority_queue<int> q;
+
+	for (int i : {1, 5, 3, 1, 13, 21, 8})
+		q.push(i);
+
+	assert(!q.empty());
+	assert(q.size() == 7);
+
+	while (!q.empty()) {
+		std::cout << q.top() << ' ';
+		q.pop();
 	}
 }
