@@ -2026,6 +2026,7 @@ int main(void) {
 }
 */
 
+/*
 // 46 원형 버퍼
 
 #include<iostream>
@@ -2205,4 +2206,137 @@ int main(void) {
 	assert(!cbuf.full());
 	assert(cbuf.size() == 1);
 	print(cbuf);
+}
+*/
+
+/*
+// 47 이중 버퍼
+
+#include<vector>
+#include<iostream>
+#include<algorithm>
+#include<thread>
+#include<chrono>
+#include<mutex>
+#include<iterator>
+
+template<typename T>
+class double_buffer {
+	typedef T value_type;
+	typedef T& reference;
+	typedef const T& const_reference;
+	typedef T* pointer;
+
+public:
+	explicit double_buffer(const size_t size):
+		rdbuf(size), wrbuf(size){ }
+
+	size_t size() const noexcept { return rdbuf.size(); }
+
+	void write(const T* const ptr, const size_t size) {
+		std::unique_lock<std::mutex> lock(mt);
+		auto length = std::min(size, wrbuf.size());
+		std::copy(ptr, ptr + length, std::begin(wrbuf));
+		wrbuf.swap(rdbuf);
+	}
+
+	template<class Output>
+	void read(Output it) const {
+		std::unique_lock<std::mutex> lock(mt);
+		std::copy(std::cbegin(rdbuf), std::cend(rdbuf), it);
+	}
+
+	pointer data() const {
+		std::unique_lock(std::mutex) lock(mt);
+		return rdbuf.data();
+	}
+
+	reference operator[](const size_t pos) {
+		std::unique_lock<std::mutex> lock(mt);
+		return rdbuf[pos];
+	}
+
+	const_reference operator[](const size_t pos) const {
+		std::unique_lock<std::mutex> lock(mt);
+		return rdbuf[pos];
+	}
+
+	void swap(double_buffer other) {
+		std::swap(rdbuf, other.rdbuf);
+		std::swap(wrbuf, other.wrbuf);
+	}
+private:
+	std::vector<T> rdbuf;
+	std::vector<T> wrbuf;
+	mutable std::mutex mt;
+};
+
+template<typename T>
+void print_buffer(const double_buffer<T>& buf) {
+	buf.read(std::ostream_iterator<T>(std::cout, " "));
+	std::cout << std::endl;
+}
+
+int main(void) {
+	double_buffer<int> buf(10);
+
+	std::thread t([&buf]() {
+		for (int i = 1; i < 1000; i += 10) {
+			int data[] = { i, i + 1, i + 2, i + 3, i + 4, i + 5, i + 6,i + 7,i + 8,i + 9 };
+			buf.write(data, 10);
+
+			using namespace std::chrono_literals;
+			std::this_thread::sleep_for(100ms);
+		}
+	});
+
+	auto start = std::chrono::system_clock::now();
+
+	do {
+		print_buffer(buf);
+
+		using namespace std::chrono_literals;
+		std::this_thread::sleep_for(150ms);
+	} while (std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - start).count() < 12);
+
+	t.join();
+}
+*/
+
+// 48 범위 안에서 가장 빈번하게 등장하는 원소와 등장 횟수 반환
+
+#include<iostream>
+#include<map>
+#include<vector>
+#include<algorithm>
+
+template<typename T>
+std::vector<std::pair<T, size_t>> find_most_frequent(const std::vector<T>& range){
+	std::map<T, size_t> counts;
+
+	for (const auto& e : range) counts[e]++;
+
+	auto maxelem = std::max_element(
+		std::cbegin(counts), std::cend(counts),
+		[](const auto& e1, const auto e2) {
+			return e1.second < e2.second;
+		});
+
+	std::vector<std::pair<T, size_t>> result;
+
+	std::copy_if(std::begin(counts), std::end(counts),
+		std::back_inserter(result),
+		[maxelem](const auto& kvp) {
+			return kvp.second == maxelem->second;
+		});
+
+	return result;
+}
+
+int main(void) {
+	auto range = std::vector<int>{ 1,1,3,5,8,13,3,5,8,8,5 };
+	auto result = find_most_frequent(range);
+
+	for (const auto& e : result)
+		std::cout << e.first << " : " << e.second << std::endl;
 }
