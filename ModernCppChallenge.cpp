@@ -2303,6 +2303,7 @@ int main(void) {
 }
 */
 
+/*
 // 48 범위 안에서 가장 빈번하게 등장하는 원소와 등장 횟수 반환
 
 #include<iostream>
@@ -2339,4 +2340,313 @@ int main(void) {
 
 	for (const auto& e : result)
 		std::cout << e.first << " : " << e.second << std::endl;
+}
+*/
+
+/*
+// 49 텍스트 히스토그램
+
+#include<iostream>
+#include<map>
+#include<algorithm>
+#include<numeric>
+#include<iomanip>
+#include<string>
+#include<string_view>
+
+std::map<char, double> analyze_text(std::string_view text) {
+
+	std::map<char, double> frequencies;
+	for (char ch = 'a'; ch <= 'z'; ch++) frequencies[ch] = 0;
+
+	for (auto ch : text) {
+		if (isalpha(ch))
+			frequencies[ch]++;
+	}
+		
+	auto total = std::accumulate(
+		std::cbegin(frequencies), std::cend(frequencies),
+		0ull, [](const auto sum, const auto& kvp) {
+			return sum + static_cast<unsigned long long>(kvp.second);
+		});
+
+	std::for_each(
+		std::begin(frequencies), std::end(frequencies),
+		[total](auto& kvp) {
+			kvp.second = (100.0 * kvp.second) / total;
+		});
+
+	return frequencies;
+}
+
+int main(void) {
+	
+	auto result = analyze_text(R"(Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.)");
+
+	for (const auto& kvp : result) {
+		std::cout << kvp.first << " : " 
+			<< std::fixed << std::setw(5) << std::setfill(' ') 
+			<< std::setprecision(2) << kvp.second << std::endl;
+	}
+}
+*/
+
+/*
+// 50 전화번호 목록 필터링
+
+#include<string>
+#include<string_view>
+#include<vector>
+#include<iostream>
+#include<algorithm>
+
+bool starts_with(std::string_view str, std::string_view prefix) {
+	return str.find(prefix) == 0;
+}
+
+template<typename InputIt>
+std::vector<std::string> filter_numbers(InputIt begin, InputIt end, const std::string& countryCode) {
+	std::vector<std::string> result;
+
+	std::copy_if(begin, end, std::back_inserter(result),
+		[countryCode](const auto& number) {
+			return starts_with(number, countryCode) || starts_with(number, "+" + countryCode);
+		});
+
+	return result;
+}
+
+std::vector<std::string> filter_numbers(const std::vector<std::string>& numbers, const std::string& countryCode) {
+	return filter_numbers(std::begin(numbers), std::cend(numbers), countryCode);
+}
+
+int main(void) {
+	std::vector<std::string> numbers{
+	 "+40744909080",
+	 "44 7520 112233",
+	 "+44 7555 123456",
+	 "40 7200 123456",
+	 "7555 123456"
+	};
+
+	auto result = filter_numbers(numbers, "44");
+
+	for (const auto& number : result)
+		std::cout << number << std::endl;
+}
+*/
+
+/*
+// 51 전화번호 목록 변경
+
+#include<iostream>
+#include<vector>
+#include<string>
+#include<algorithm>
+
+bool starts_with(std::string_view str, std::string_view prefix) {
+	return str.find(prefix) == 0;
+}
+
+void normalize_phone_numbers(std::vector<std::string>& numbers, const std::string& countryCode) {
+	std::transform(std::cbegin(numbers), std::cend(numbers), std::begin(numbers),
+		[countryCode](const std::string& number) {
+			std::string result;
+
+			if (number.size() > 0) {
+				if (number[0] == '0') result = "+" + countryCode + number.substr(1);
+				else if (starts_with(number, countryCode)) result = "+" + number;
+				else if (starts_with(number, countryCode)) result = number;
+				else result = "+" +countryCode+ number;
+			}
+
+			result.erase(
+				std::remove_if(
+					std::begin(result), std::end(result),
+					[](const char ch) {return isspace(ch); }),
+				std::end(result));
+
+			return result;
+		});
+}
+
+int main() {
+	std::vector<std::string> numbers{
+	   "07555 123456",
+	   "07555123456",
+	   "+44 7555 123456",
+	   "44 7555 123456",
+	   "7555 123456"
+	};
+
+	normalize_phone_numbers(numbers, "44");
+
+	for (auto const& number : numbers)
+		std::cout << number << std::endl;
+	
+}
+*/
+
+/*
+// 52 문자열로 만들 수 있는 모든 순열 생성
+
+#include<iostream>
+#include<string>
+#include<algorithm>
+
+void print_permutations(std::string str) {
+	std::sort(std::begin(str), std::end(str));
+
+	do {
+		std::cout << str << std::endl;
+	} while (std::next_permutation(std::begin(str), std::end(str)));
+}
+
+void next_permutation(std::string str, std::string perm) {
+	if (str.empty()) std::cout << perm << std::endl;
+	else {
+		for (size_t i = 0; i < str.size(); ++i) {
+			next_permutation(str.substr(1), perm + str[0]);
+
+			std::rotate(std::begin(str), std::begin(str) + 1, std::end(str));
+		}
+	}
+}
+
+void print_permutations_recursive(std::string str) {
+	next_permutation(str, "");
+}
+
+int main(void) {
+	std::cout << "non-recursive version" << std::endl;
+	print_permutations("main");
+
+	std::cout << "recursive version" << std::endl;
+	print_permutations_recursive("main");
+}
+*/
+
+/*
+// 53 영화 평균 계산 출력
+
+#include<iostream>
+#include<string>
+#include<vector>
+#include<algorithm>
+#include<numeric>
+#include<iomanip>
+
+struct movie {
+	int id;
+	std::string title;
+	std::vector<int> ratings;
+};
+
+double truncated_mean(std::vector<int> values, const double percentage) {
+	std::sort(std::begin(values), std::end(values));
+
+	auto remove_count = static_cast<size_t>(values.size() * percentage + 0.5);
+
+	values.erase(std::begin(values), std::begin(values) + remove_count);
+	values.erase(std::end(values) - remove_count, std::end(values));
+
+	auto total = std::accumulate(
+		std::cbegin(values), std::cend(values),
+		0ull,
+		[](const auto sum, const auto e) {
+			return sum + e;
+		});
+
+	return static_cast<double>(total) / values.size();
+}
+
+void print_movie_ratings(const std::vector<movie>& movies) {
+	for (const auto& m : movies) {
+		std::cout
+			<< m.title << " : "
+			<< std::fixed << std::setprecision(1)
+			<< truncated_mean(m.ratings, 0.05) << std::endl;
+	}
+}
+
+int main(void) {
+	std::vector<movie> movies
+	{
+	   { 101, "The Matrix",{ 10, 9, 10, 9, 9, 8, 7, 10, 5, 9, 9, 8 } },
+	   { 102, "Gladiator",{ 10, 5, 7, 8, 9, 8, 9, 10, 10, 5, 9, 8, 10 } },
+	   { 103, "Interstellar",{ 10, 10, 10, 9, 3, 8, 8, 9, 6, 4, 7, 10 } }
+	};
+
+	print_movie_ratings(movies);
+}
+*/
+
+/*
+// 54 쌍 알고리즘 함수
+
+#include<iostream>
+#include<vector>
+
+template<typename Input, typename Output>
+void pairwise(Input begin, Input end, Output result) {
+	auto it = begin;
+	while (it != end) {
+		auto v1 = *it++; if (it == end) break;
+		auto v2 = *it++;
+		result++ = std::make_pair(v1, v2);
+	}
+}
+
+template<typename T>
+std::vector<std::pair<T, T>> pairwise(const std::vector<T>& range) {
+	std::vector<std::pair<T, T>> result;
+	pairwise(std::begin(range), std::end(range),std::back_inserter(result));
+
+	return result;
+}
+
+int main(void) {
+	std::vector<int> v{ 1, 1, 3, 5, 8, 13, 21 };
+
+	auto result = pairwise(v);
+
+	for (const auto& p : result)
+		std::cout << '{' << p.first << ',' << p.second << '}' << std::endl;
+}
+*/
+
+// 55 결합 알고리즘 함수
+
+#include<iostream>
+#include<vector>
+
+template<typename Input1, typename Input2, typename Output>
+void zip(Input1 begin1, Input1 end1, Input2 begin2, Input2 end2, Output result) {
+	auto it1 = begin1;
+	auto it2 = begin2;
+	while (it1 != end1 && it2 != end2)
+		result++ = std::make_pair(*it1++, *it2++);
+}
+
+template <typename T, typename U>
+std::vector<std::pair<T, U>> zip(const std::vector<T> & range1,const std::vector<U> & range2) {
+	std::vector<std::pair<T, U>> result;
+
+	zip(
+		std::begin(range1), std::end(range1),
+		std::begin(range2), std::end(range2),
+		std::back_inserter(result));
+
+	return result;
+}
+
+int main(void) {
+	std::vector<int> v1{ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+	std::vector<int> v2{ 1, 1, 3, 5, 8, 13, 21 };
+
+	auto result = zip(v1, v2);
+
+	for (const auto& p : result)
+		std::cout << '{' << p.first << ',' << p.second << '}' << std::endl;
+	
 }
