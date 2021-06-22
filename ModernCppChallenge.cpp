@@ -2615,6 +2615,7 @@ int main(void) {
 }
 */
 
+/*
 // 55 결합 알고리즘 함수
 
 #include<iostream>
@@ -2650,3 +2651,453 @@ int main(void) {
 		std::cout << '{' << p.first << ',' << p.second << '}' << std::endl;
 	
 }
+*/
+
+/*
+// 56 선택 알고리즘 함수
+
+#include<iostream>
+#include<algorithm>
+#include<vector>
+#include<string>
+
+template <
+	typename T, typename A, typename F,
+	typename R = typename std::decay<typename std::result_of<typename std::decay<F>::type& (typename std::vector<T, A>::const_reference)>::type>::type>
+	const std::vector<R> select(std::vector<T, A>& c, F&& f) {
+	
+	std::vector<R> v;
+	std::transform(std::cbegin(c), std::cend(c), std::back_inserter(v), std::forward<F>(f));
+	
+	return v;
+}
+
+struct book {
+	int id;
+	std::string title;
+	std::string author;
+};
+
+int main(void) {
+	std::vector<book> books{
+	 {101, "The C++ Programming Language", "Bjarne Stroustrup"},
+	 {203, "Effective Modern C++", "Scott Meyers"},
+	 {404, "The Modern C++ Programming Cookbook", "Marius Bancila"} };
+
+	auto titles = select(books, [](const book& b) {return b.title; });
+
+	for (const auto& title : titles)
+		std::cout << title << std::endl;
+}
+*/
+
+/*
+// 57 정렬 알고리즘 함수
+
+#include <iostream>
+#include <vector>
+#include <array>
+#include <functional>
+#include <numeric>
+#include <random>
+#include <array>
+#include <stack>
+#include <chrono>
+#include <assert.h>
+
+template <class RandomIt>
+RandomIt partition(RandomIt first, RandomIt last) {
+	auto pivot = *first;
+	auto i = first + 1;
+	auto j = last - 1;
+	while (i <= j) {
+		while (i <= j && *i <= pivot) i++;
+		while (i <= j && *j > pivot) j--;
+		if (i < j) std::iter_swap(i, j);
+	}
+
+	std::iter_swap(i - 1, first);
+
+	return i - 1;
+}
+
+template <class RandomIt, class Compare>
+RandomIt partitionc(RandomIt first, RandomIt last, Compare comp) {
+	auto pivot = *first;
+	auto i = first + 1;
+	auto j = last - 1;
+	while (i <= j) {
+		while (i <= j && comp(*i, pivot)) i++;
+		while (i <= j && !comp(*j, pivot)) j--;
+		if (i < j) std::iter_swap(i, j);
+	}
+
+	std::iter_swap(i - 1, first);
+
+	return i - 1;
+}
+
+template <class RandomIt>
+void quicksorti(RandomIt first, RandomIt last) {
+	std::stack<std::pair<RandomIt, RandomIt>> st;
+	st.push(std::make_pair(first, last));
+	while (!st.empty()) {
+		auto iters = st.top();
+		st.pop();
+
+		if (iters.second - iters.first < 2) continue;
+
+		auto p = partition(iters.first, iters.second);
+
+		st.push(std::make_pair(iters.first, p));
+		st.push(std::make_pair(p + 1, iters.second));
+	}
+}
+
+template <class RandomIt>
+void quicksort(RandomIt first, RandomIt last) {
+	if (first < last) {
+		auto p = partition(first, last);
+		quicksort(first, p);
+		quicksort(p + 1, last);
+	}
+}
+
+template <class RandomIt, class Compare>
+void quicksort(RandomIt first, RandomIt last, Compare comp) {
+	if (first < last) {
+		auto p = partitionc(first, last, comp);
+		quicksort(first, p, comp);
+		quicksort(p + 1, last, comp);
+	}
+}
+
+template <class RandomIt>
+void print(RandomIt first, RandomIt last) {
+	for (auto it = first; it < last; ++it) 
+		std::cout << *it << ' ';
+	std::cout << std::endl;
+}
+
+int main() {
+	{
+		std::vector<int> v{ 1, 5,3,8,6,2,9,7,4 };
+
+		quicksort(std::begin(v), std::end(v));
+
+		print(std::begin(v), std::end(v));
+	}
+
+	{
+		std::array<int, 9> a{ 1,2,3,4,5,6,7,8,9 };
+
+		quicksort(std::begin(a), std::end(a));
+
+		print(std::begin(a), std::end(a));
+	}
+
+
+	{
+		int a[]{ 9,8,7,6,5,4,3,2,1 };
+
+		quicksort(std::begin(a), std::end(a));
+
+		print(std::begin(a), std::end(a));
+	}
+
+	{
+		std::vector<int> v{ 1,5,3,8,6,2,9,7,4 };
+
+		quicksort(std::begin(v), std::end(v), std::greater_equal<>());
+
+		print(std::begin(v), std::end(v));
+	}
+
+	{
+		std::array<int, 9> a{ 1,2,3,4,5,6,7,8,9 };
+
+		quicksort(std::begin(a), std::end(a), std::greater_equal<>());
+
+		print(std::begin(a), std::end(a));
+	}
+
+
+	{
+		int a[]{ 9,8,7,6,5,4,3,2,1 };
+
+		quicksort(std::begin(a), std::end(a), std::greater_equal<>());
+
+		print(std::begin(a), std::end(a));
+	}
+
+	{
+		std::vector<int> v{ 1, 5,3,8,6,2,9,7,4 };
+
+		quicksorti(std::begin(v), std::end(v));
+
+		print(std::begin(v), std::end(v));
+	}
+
+	{
+		const size_t count = 1000000;
+		std::vector<int> data(count);
+
+		std::random_device rd;
+		std::mt19937 mt;
+		auto seed_data = std::array<int, std::mt19937::state_size> {};
+		std::generate(std::begin(seed_data), std::end(seed_data), std::ref(rd));
+		std::seed_seq seq(std::begin(seed_data), std::end(seed_data));
+		mt.seed(seq);
+		std::uniform_int_distribution<> ud(1, 1000);
+
+		std::cout << "generating..." << std::endl;
+		std::generate_n(std::begin(data), count, [&mt, &ud]() {return ud(mt); });
+
+		auto d1 = data;
+		auto d2 = data;
+
+		std::cout << "sorting..." << std::endl;
+		auto start1 = std::chrono::system_clock::now();
+		quicksort(std::begin(d1), std::end(d1));
+		auto end1 = std::chrono::system_clock::now();
+		auto t1 = std::chrono::duration_cast<std::chrono::milliseconds>(end1 - start1);
+		std::cout << "time: " << t1.count() << "ms" << std::endl;
+
+		std::cout << "sorting..." << std::endl;
+		auto start2 = std::chrono::system_clock::now();
+		quicksorti(std::begin(d2), std::end(d2));
+		auto end2 = std::chrono::system_clock::now();
+		auto t2 = std::chrono::duration_cast<std::chrono::milliseconds>(end2 - start2);
+		std::cout << "time: " << t2.count() << "ms" << std::endl;
+
+		assert(d1 == d2);
+	}
+
+}
+*/
+
+
+// 58 노드 사이의 최단 경로 계산
+
+#include<iostream>
+#include<queue>
+#include<set>
+#include<algorithm>
+#include<vector>
+#include<map>
+#include<numeric>
+#include<string>
+
+template <typename Vertex = int, typename Weight=double>
+class graph {
+public:
+	typedef Vertex vertex_type;
+	typedef Weight weight_type;
+	typedef std::pair<Vertex, Weight> neighbor_type;
+	typedef std::vector<neighbor_type> neighbor_list_type;
+public:
+	void add_edge(const Vertex source, const Vertex target, const Weight weight, const bool bidirectional = true) {
+		adjacency_list[source].push_back(std::make_pair(target, weight));
+		adjacency_list[target].push_back(std::make_pair(source, weight));
+	}
+
+	size_t vertex_count() const { return adjacency_list.size(); }
+	std::vector<Vertex> verteces() const {
+		std::vector<Vertex> keys;
+		for (const auto& kvp : adjacency_list)
+			keys.push_back(kvp.first);
+		return keys;
+	}
+
+	const neighbor_list_type& neighbors(const Vertex& v) const {
+		auto pos = adjacency_list.find(v);
+		if (pos == adjacency_list.end())
+			throw std::runtime_error("vertex not found");
+
+		return pos->second;
+	}
+	constexpr static Weight Infinity = std::numeric_limits<Weight>::infinity();
+private:
+	std::map<vertex_type, neighbor_list_type> adjacency_list;
+};
+
+template<typename Vertex, typename Weight>
+void shortest_path(
+	const graph<Vertex, Weight>& g,
+	const Vertex source, 
+	std::map<Vertex, Weight>& min_distance, 
+	std::map<Vertex, Vertex>& previous) {
+
+	const auto n = g.vertex_count();
+	const auto verteces = g.verteces();
+
+	min_distance.clear();
+	for (const auto& v : verteces)
+		min_distance[v] = graph<Vertex, Weight>::Infinity;
+	min_distance[source] = 0;
+
+	previous.clear();
+
+	std::set<std::pair<Weight, Vertex>>vertex_queue;
+	vertex_queue.insert(std::make_pair(min_distance[source], source));
+
+	while (!vertex_queue.empty()) {
+		auto dist = vertex_queue.begin()->first;
+		auto u = vertex_queue.begin()->second;
+
+		vertex_queue.erase(std::begin(vertex_queue));
+
+		const auto& neighbors = g.neighbors(u);
+		for (const auto& neighbor : neighbors) {
+			auto v = neighbor.first;
+			auto w = neighbor.second;
+			auto dist_via_u = dist + w;
+			if (dist_via_u < min_distance[v]) {
+				vertex_queue.erase(std::make_pair(min_distance[v], v));
+
+				min_distance[v] = dist_via_u;
+				previous[v] = u;
+				vertex_queue.insert(std::make_pair(min_distance[v], v));
+			}
+		}
+	}
+}
+
+template<typename Vertex>
+void build_path(const std::map<Vertex, Vertex>& prev, const Vertex v, std::vector<Vertex>& result) {
+	result.push_back(v);
+
+	auto pos = prev.find(v);
+	if (pos == std::end(prev))return;
+
+	build_path(prev, pos->second, result);
+}
+
+template <typename Vertex>
+std::vector<Vertex> build_path(const std::map<Vertex, Vertex> & prev, Vertex const v) {
+	std::vector<Vertex> result;
+	build_path(prev, v, result);
+	std::reverse(std::begin(result), std::end(result));
+	return result;
+}
+
+template <typename Vertex>
+void print_path(const std::vector<Vertex>& path) {
+	for (size_t i = 0; i < path.size(); ++i) {
+		std::cout << path[i];
+		if (i < path.size() - 1)
+			std::cout << " -> ";
+	}
+}
+
+graph<char, double> make_graph() {
+	graph<char, double> g;
+	g.add_edge('A', 'B', 4);
+	g.add_edge('A', 'H', 8);
+	g.add_edge('B', 'C', 8);
+	g.add_edge('B', 'H', 11);
+	g.add_edge('C', 'D', 7);
+	g.add_edge('C', 'F', 4);
+	g.add_edge('C', 'J', 2);
+	g.add_edge('D', 'E', 9);
+	g.add_edge('D', 'F', 14);
+	g.add_edge('E', 'F', 10);
+	g.add_edge('F', 'G', 2);
+	g.add_edge('G', 'J', 6);
+	g.add_edge('G', 'H', 1);
+	g.add_edge('H', 'J', 7);
+
+	return g;
+}
+
+graph<char, double> make_graph_wiki() {
+	graph<char, double> g;
+	g.add_edge('A', 'B', 7);
+	g.add_edge('A', 'C', 9);
+	g.add_edge('A', 'F', 14);
+	g.add_edge('B', 'C', 10);
+	g.add_edge('B', 'D', 15);
+	g.add_edge('C', 'D', 11);
+	g.add_edge('C', 'F', 2);
+	g.add_edge('D', 'E', 6);
+	g.add_edge('E', 'F', 9);
+
+	return g;
+}
+
+graph<std::string, double> make_graph_map() {
+	graph<std::string, double> g;
+
+	g.add_edge("London", "Reading", 41);
+	g.add_edge("London", "Oxford", 57);
+	g.add_edge("Reading", "Swindon", 40);
+	g.add_edge("Swindon", "Bristol", 40);
+	g.add_edge("Oxford", "Swindon", 30);
+	g.add_edge("London", "Southampton", 80);
+	g.add_edge("Southampton", "Bournemouth", 33);
+	g.add_edge("Bournemouth", "Exeter", 89);
+	g.add_edge("Bristol", "Exeter", 83);
+	g.add_edge("Bristol", "Bath", 12);
+	g.add_edge("Swindon", "Bath", 35);
+	g.add_edge("Reading", "Southampton", 50);
+
+	return g;
+}
+
+int main() {
+	{
+		auto g = make_graph();
+
+		char source = 'A';
+		std::map<char, double>  min_distance;
+		std::map<char, char> previous;
+		shortest_path(g, source, min_distance, previous);
+
+		for (auto const& kvp : min_distance) {
+			std::cout << source << " -> " << kvp.first << " : "
+				<< kvp.second << '\t';
+
+			print_path(build_path(previous, kvp.first));
+
+			std::cout << std::endl;
+		}
+	}
+
+	{
+		auto g = make_graph_wiki();
+
+		char source = 'A';
+		std::map<char, double>  min_distance;
+		std::map<char, char> previous;
+		shortest_path(g, source, min_distance, previous);
+
+		for (auto const& kvp : min_distance) {
+			std::cout << source << " -> " << kvp.first << " : "
+				<< kvp.second << '\t';
+
+			print_path(build_path(previous, kvp.first));
+
+			std::cout << std::endl;
+		}
+	}
+
+	{
+		auto g = make_graph_map();
+
+		std::string source = "London";
+		std::map<std::string, double>  min_distance;
+		std::map<std::string, std::string> previous;
+		shortest_path(g, source, min_distance, previous);
+
+		for (auto const& kvp : min_distance) {
+			std::cout << source << " -> " << kvp.first << " : "
+				<< kvp.second << '\t';
+
+			print_path(build_path(previous, kvp.first));
+
+			std::cout << std::endl;
+		}
+	}
+}
+
+
