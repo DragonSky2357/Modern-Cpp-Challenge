@@ -3486,6 +3486,7 @@ int main(void) {
 }
 */
 
+/*
 // 62 스레드 기반 병렬 최솟값, 최댓값 탐색 알고리즘
 
 #include<iostream>
@@ -3605,4 +3606,425 @@ int main(void) {
 
 		assert(r1 == r2);
 	}
+}
+*/
+
+// 63 비동기 함수 기반 병렬 최솟값,최댓값 탐색
+/*
+#include <iostream>
+#include <vector>
+#include <array>
+#include <algorithm>
+#include <functional>
+#include <random>
+#include <chrono>
+#include <future>
+#include <assert.h>
+
+template <typename Iterator, typename F>
+auto sprocess(Iterator begin, Iterator end, F&& f) {
+	return std::forward<F>(f)(begin, end);
+}
+
+template <typename Iterator>
+auto smin(Iterator begin, Iterator end) {
+	return sprocess(begin, end,
+		[](auto b, auto e) {return *std::min_element(b, e); });
+}
+
+template <typename Iterator>
+auto smax(Iterator begin, Iterator end) {
+	return sprocess(begin, end,
+		[](auto b, auto e) {return *std::max_element(b, e); });
+}
+
+template <typename Iterator, typename F>
+auto pprocess(Iterator begin, Iterator end, F&& f) {
+	auto size = std::distance(begin, end);
+	if (size <= 10000) {
+		return std::forward<F>(f)(begin, end);
+	} else {
+		int task_count = std::thread::hardware_concurrency();
+		std::vector<std::future<typename std::iterator_traits<Iterator>::value_type>> tasks;
+
+		auto first = begin;
+		auto last = first;
+		size /= task_count;
+		for (int i = 0; i < task_count; ++i) {
+			first = last;
+			if (i == task_count - 1) last = end;
+			else std::advance(last, size);
+
+			tasks.emplace_back(std::async(
+				std::launch::async,
+				[first, last, &f]() {
+					return std::forward<F>(f)(first, last);
+				}));
+		}
+
+		std::vector<typename std::iterator_traits<Iterator>::value_type> mins;
+		for (auto& t : tasks)
+			mins.push_back(t.get());
+
+		return std::forward<F>(f)(std::begin(mins), std::end(mins));
+	}
+}
+
+template <typename Iterator>
+auto pmin(Iterator begin, Iterator end) {
+	return pprocess(begin, end,
+		[](auto b, auto e) {return *std::min_element(b, e); });
+}
+
+template <typename Iterator>
+auto pmax(Iterator begin, Iterator end) {
+	return pprocess(begin, end,
+		[](auto b, auto e) {return *std::max_element(b, e); });
+}
+
+int main() {
+	const size_t count = 10000000;
+	std::vector<int> data(count);
+
+	std::random_device rd;
+	std::mt19937 mt;
+	auto seed_data = std::array<int, std::mt19937::state_size> {};
+	std::generate(std::begin(seed_data), std::end(seed_data), std::ref(rd));
+	std::seed_seq seq(std::begin(seed_data), std::end(seed_data));
+	mt.seed(seq);
+	std::uniform_int_distribution<> ud(1, 1000);
+
+	std::generate_n(std::begin(data), count, [&mt, &ud]() {return ud(mt); });
+
+	{
+		std::cout << "minimum element" << std::endl;
+
+		auto start = std::chrono::system_clock::now();
+		auto r1 = smin(std::begin(data), std::end(data));
+		auto end = std::chrono::system_clock::now();
+		auto t1 = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+		std::cout << "seq time: " << t1.count() << "ms" << std::endl;
+
+		start = std::chrono::system_clock::now();
+		auto r2 = pmin(std::begin(data), std::end(data));
+		end = std::chrono::system_clock::now();
+		auto t2 = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+		std::cout << "par time: " << t2.count() << "ms" << std::endl;
+
+		assert(r1 == r2);
+	}
+
+	{
+		std::cout << "maximum element" << std::endl;
+
+		auto start = std::chrono::system_clock::now();
+		auto r1 = smax(std::begin(data), std::end(data));
+		auto end = std::chrono::system_clock::now();
+		auto t1 = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+		std::cout << "seq time: " << t1.count() << "ms" << std::endl;
+
+		start = std::chrono::system_clock::now();
+		auto r2 = pmax(std::begin(data), std::end(data));
+		end = std::chrono::system_clock::now();
+		auto t2 = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+		std::cout << "par time: " << t2.count() << "ms" << std::endl;
+
+		assert(r1 == r2);
+	}
+}
+*/
+
+// 64 병렬 정렬 알고리즘
+/*
+#include<iostream>
+#include<vector>
+#include<array>
+#include<functional>
+#include<chrono>
+#include<assert.h>
+#include<random>
+#include<future>
+
+template<class RandomIt>
+RandomIt partition(RandomIt first, RandomIt last) {
+	auto pivot = *first;
+	auto i = first + 1;
+	auto j = last - 1;
+	while (i <= j) {
+		while (i <= j && *i <= pivot) i++;
+		while (i <= j&& *j> pivot)j--;
+		if (i < j) std::iter_swap(i, j);
+	}
+
+	std::iter_swap(i - 1, first);
+
+	return i - 1;
+}
+
+template <class RandomIt, class Compare>
+RandomIt partitionc(RandomIt first, RandomIt last, Compare comp) {
+	auto pivot = *first;
+	auto i = first + 1;
+	auto j = last - 1;
+	while (i <= j) {
+		while (i <= j && comp(*i, pivot)) i++;
+		while (i <= j && !comp(*j, pivot)) j--;
+		if (i < j) std::iter_swap(i, j);
+	}
+
+	std::iter_swap(i - 1, first);
+
+	return i - 1;
+}
+
+template<class RandomIt>
+void quicksort(RandomIt first, RandomIt last) {
+	if (first < last) {
+		auto p = partition(first, last);
+		quicksort(first, p);
+		quicksort(p + 1, last);
+	}
+}
+
+template<class RandomIt>
+void pquicksort(RandomIt first, RandomIt last) {
+	if (first < last) {
+		auto p = partition(first, last);
+
+		if (last - first <= 100000) {
+			pquicksort(first, p);
+			pquicksort(p + 1, last);
+		} else {
+			auto f1 = std::async(std::launch::async,
+				[first, p]() { pquicksort(first, p); });
+			auto f2 = std::async(std::launch::async,
+				[last, p]() { pquicksort(p + 1, last); });
+			f1.wait();
+			f2.wait();
+		}
+	}
+}
+
+int main(void) {
+	const size_t count = 1000000;
+	std::vector<int> data(count);
+
+	std::random_device rd;
+	std::mt19937 mt;
+	auto seed_data = std::array<int, std::mt19937::state_size> {};
+	std::generate(std::begin(seed_data), std::end(seed_data), std::ref(rd));
+	std::seed_seq seq(std::begin(seed_data), std::end(seed_data));
+	mt.seed(seq);
+	std::uniform_int_distribution<> ud(1, 1000);
+
+	std::cout << "generating..." << std::endl;
+	std::generate_n(std::begin(data), count, [&mt, &ud]() {return ud(mt); });
+
+	auto d1 = data;
+	auto d2 = data;
+
+	std::cout << "sorting..." << std::endl;
+	auto start = std::chrono::system_clock::now();
+	quicksort(std::begin(d1), std::end(d1));
+	auto end = std::chrono::system_clock::now();
+	auto t1 = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+	std::cout << "time: " << t1.count() << "ms" << std::endl;
+
+	start = std::chrono::system_clock::now();
+	pquicksort(std::begin(d2), std::end(d2));
+	end = std::chrono::system_clock::now();
+	auto t2 = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+	std::cout << "time: " << t2.count() << "ms" << std::endl;
+
+	std::cout << "verifying..." << std::endl;
+	assert(d1 == d2);
+}
+*/
+
+/*
+// 65 스레드 안전하게 콘솔에 로그 메시지를 출력하는 함수
+
+#include <iostream>
+#include <vector>
+#include <chrono>
+#include <random>
+#include <thread>
+#include <string_view>
+#include <mutex>
+#include <string>
+
+class logger {
+protected:
+	logger(){}
+
+public:
+	static logger& instance() {
+		static logger lg;
+		return lg;
+	}
+
+	logger(const logger&) = delete;
+	logger& operator=(const logger&) = delete;
+
+	void log(std::string_view message) {
+		std::lock_guard<std::mutex> lock(mt);
+		std::cout << "LOG: " << message << std::endl;
+	}
+
+private:
+	std::mutex mt;
+};
+
+int main(void) {
+	std::vector<std::thread> modules;
+
+	for (int id = 1; id <= 5; ++id) {
+		modules.emplace_back([id]() {
+			std::random_device rd;
+			std::mt19937 mt(rd());
+			std::uniform_int_distribution<> ud(100, 1000);
+
+			logger::instance().log("module " + std::to_string(id) + " started");
+
+			std::this_thread::sleep_for(std::chrono::milliseconds(ud(mt)));
+
+			logger::instance().log("module " + std::to_string(id) + " finished");
+			});
+	}
+
+	for (auto& m : modules) m.join();
+}
+*/
+
+// 66 고객 서비스 시스템 구현
+
+#include <iostream>
+#include <vector>
+#include <chrono>
+#include <random>
+#include <thread>
+#include <string_view>
+#include <mutex>
+#include <condition_variable>
+#include <queue>
+#include <string>
+#include <array>
+
+class logger {
+protected:
+	logger() {}
+public:
+	static logger& instance() {
+		static logger lg;
+		return lg;
+	}
+
+	logger(logger const&) = delete;
+	logger& operator=(logger const&) = delete;
+
+	void log(std::string_view message) {
+		std::lock_guard<std::mutex> lock(mt);
+		std::cout << "LOG: " << message << std::endl;
+	}
+
+private:
+	std::mutex mt;
+};
+
+class ticketing_machine {
+public:
+	ticketing_machine(const int start) : last_ticket(start), first_ticket(start){}
+
+	int next() { return last_ticket++; }
+	int last() const { return last_ticket - 1; }
+	void reset() { last_ticket = first_ticket; }
+
+private:
+	int first_ticket;
+	int last_ticket;
+};
+
+class customer {
+public:
+	customer(const int no): number(no){}
+	int ticket_number() const noexcept { return number; }
+private:
+	int number;
+
+	friend bool operator<(const customer& l, const customer& r);
+};
+
+bool operator<(const customer& l, const customer& r) {
+	return l.number > r.number;
+}
+
+int main(void) {
+	std::priority_queue<customer> customers;
+	bool store_open = true;
+	std::mutex mt;
+	std::condition_variable cv;
+
+	std::vector<std::thread> desks;
+	for (int i = 1; i <= 5; ++i) {
+		desks.emplace_back([i, &store_open, &mt, &cv, &customers]() {
+			std::random_device rd;
+			auto seed_data = std::array<int, std::mt19937::state_size> {};
+			std::generate(std::begin(seed_data), std::end(seed_data), std::ref(rd));
+			std::seed_seq seq(std::begin(seed_data), std::end(seed_data));
+			std::mt19937 eng(seq);
+			std::uniform_int_distribution<> ud(2000, 3000);
+
+			logger::instance().log("desk " + std::to_string(i) + " open");
+
+			while (store_open || !customers.empty()) {
+				std::unique_lock<std::mutex> locker(mt);
+
+				cv.wait_for(locker, std::chrono::seconds(1), [&customers]() {return !customers.empty(); });
+
+				if (!customers.empty()) {
+					const auto c = customers.top();
+					customers.pop();
+
+					logger::instance().log("[-] desk " + std::to_string(i) + " handling customer " + std::to_string(c.ticket_number()));
+
+					logger::instance().log("[=] queue size: " + std::to_string(customers.size()));
+
+					locker.unlock();
+					cv.notify_one();
+
+					std::this_thread::sleep_for(std::chrono::milliseconds(ud(eng)));
+
+					logger::instance().log("[ ] desk " + std::to_string(i) + " done with customer " + std::to_string(c.ticket_number()));
+				}
+			}
+			logger::instance().log("desk " + std::to_string(i) + " closed");
+		});
+	}
+
+	std::thread store([&store_open, &customers, &mt, &cv]() {
+		ticketing_machine tm(100);
+		std::random_device rd;
+		auto seed_data = std::array<int, std::mt19937::state_size>{};
+		std::generate(std::begin(seed_data), std::end(seed_data), std::ref(rd));
+		std::seed_seq seq(std::begin(seed_data), std::end(seed_data));
+		std::mt19937 eng(seq);
+		std::uniform_int_distribution<> ud(200, 500);
+
+		for (int i = 1; i <= 100; i++) {
+			customer c(tm.next());
+			customers.push(c);
+
+			logger::instance().log("[+] new customer with ticket " + std::to_string(c.ticket_number()));
+			logger::instance().log("[=] queue size: " + std::to_string(customers.size()));
+
+			cv.notify_one();
+
+			std::this_thread::sleep_for(std::chrono::milliseconds(ud(eng)));
+		}
+		store_open = false;
+	});
+
+	store.join();
+
+	for (auto& desk : desks) desk.join();
 }
