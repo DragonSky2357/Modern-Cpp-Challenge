@@ -887,7 +887,7 @@ namespace temperature {
 namespace temperature {
 	template<scale S, scale R>
 	struct conversion_traits {
-		static double convert(double const value) = delete;
+		static double convert(const double value) = delete;
 	};
 
 	template<>
@@ -1398,7 +1398,7 @@ struct procinfo {
 };
 
 void print_processes(std::vector<procinfo> processes) {
-	std::sort(std::begin(processes), std::end(processes), 
+	std::sort(std::begin(processes), std::end(processes),
 		[](const procinfo& p1, const procinfo& p2) {return p1.name < p2.name; });
 
 	for (auto const& pi : processes) {
@@ -1451,7 +1451,7 @@ void remove_empty_lines(fs::path filepath) {
 	std::ifstream filein(filepath.native(), std::ios::in);
 	if (!filein.is_open())
 		throw std::runtime_error("cannot open input file");
-	
+
 	auto temppath = fs::temp_directory_path() / "temp.txt";
 	std::ofstream fileout(temppath.native(), std::ios::out | std::ios::trunc);
 	if (!fileout.is_open())
@@ -1707,7 +1707,7 @@ int main() {
 #include<chrono>
 #include<thread>
 
-template<typename Time = std::chrono::microseconds, 
+template<typename Time = std::chrono::microseconds,
 	typename Clock = std::chrono::high_resolution_clock>
 	struct perf_timer{
 	template<typename F, typename... Args>
@@ -1751,7 +1751,7 @@ int main(void) {
 
 inline int number_of_days(
 	const int y1, const unsigned int m1, const unsigned int d1,
-	const int y2, const unsigned int m2, const unsigned int d2) 
+	const int y2, const unsigned int m2, const unsigned int d2)
 {
 	using namespace date;
 
@@ -1965,7 +1965,7 @@ int main() {
 */
 
 /*
-// 45 우선순위 큐 
+// 45 우선순위 큐
 #include<iostream>
 #include<vector>
 #include<algorithm>
@@ -2005,7 +2005,7 @@ private:
 
 template<class T, class Compare>
 void swap(priority_queue<T, Compare>& lhs,
-	priority_queue<T, Compare>& rhs) noexcept(noexcept(lhs.swap(rhs))) 
+	priority_queue<T, Compare>& rhs) noexcept(noexcept(lhs.swap(rhs)))
 {
 	lhs.swap(rhs);
 }
@@ -2363,7 +2363,7 @@ std::map<char, double> analyze_text(std::string_view text) {
 		if (isalpha(ch))
 			frequencies[ch]++;
 	}
-		
+
 	auto total = std::accumulate(
 		std::cbegin(frequencies), std::cend(frequencies),
 		0ull, [](const auto sum, const auto& kvp) {
@@ -2380,12 +2380,12 @@ std::map<char, double> analyze_text(std::string_view text) {
 }
 
 int main(void) {
-	
+
 	auto result = analyze_text(R"(Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.)");
 
 	for (const auto& kvp : result) {
-		std::cout << kvp.first << " : " 
-			<< std::fixed << std::setw(5) << std::setfill(' ') 
+		std::cout << kvp.first << " : "
+			<< std::fixed << std::setw(5) << std::setfill(' ')
 			<< std::setprecision(2) << kvp.second << std::endl;
 	}
 }
@@ -2483,7 +2483,7 @@ int main() {
 
 	for (auto const& number : numbers)
 		std::cout << number << std::endl;
-	
+
 }
 */
 
@@ -2649,7 +2649,7 @@ int main(void) {
 
 	for (const auto& p : result)
 		std::cout << '{' << p.first << ',' << p.second << '}' << std::endl;
-	
+
 }
 */
 
@@ -2665,10 +2665,10 @@ template <
 	typename T, typename A, typename F,
 	typename R = typename std::decay<typename std::result_of<typename std::decay<F>::type& (typename std::vector<T, A>::const_reference)>::type>::type>
 	const std::vector<R> select(std::vector<T, A>& c, F&& f) {
-	
+
 	std::vector<R> v;
 	std::transform(std::cbegin(c), std::cend(c), std::back_inserter(v), std::forward<F>(f));
-	
+
 	return v;
 }
 
@@ -2774,7 +2774,7 @@ void quicksort(RandomIt first, RandomIt last, Compare comp) {
 
 template <class RandomIt>
 void print(RandomIt first, RandomIt last) {
-	for (auto it = first; it < last; ++it) 
+	for (auto it = first; it < last; ++it)
 		std::cout << *it << ' ';
 	std::cout << std::endl;
 }
@@ -2924,8 +2924,8 @@ private:
 template<typename Vertex, typename Weight>
 void shortest_path(
 	const graph<Vertex, Weight>& g,
-	const Vertex source, 
-	std::map<Vertex, Weight>& min_distance, 
+	const Vertex source,
+	std::map<Vertex, Weight>& min_distance,
 	std::map<Vertex, Vertex>& previous) {
 
 	const auto n = g.vertex_count();
@@ -3220,8 +3220,8 @@ public:
 		mt.seed(seq);
 	}
 
-	void run(const seed s, 
-		const int generations, 
+	void run(const seed s,
+		const int generations,
 		const std::chrono::microseconds ms = std::chrono::milliseconds(100)) {
 		reset();
 		initialize(s);
@@ -3896,6 +3896,7 @@ int main(void) {
 }
 */
 
+/*
 // 66 고객 서비스 시스템 구현
 
 #include <iostream>
@@ -3965,7 +3966,7 @@ int main(void) {
 	std::condition_variable cv;
 
 	std::vector<std::thread> desks;
-	for (int i = 1; i <= 5; ++i) {
+	for (int i = 1; i <= 3; ++i) {
 		desks.emplace_back([i, &store_open, &mt, &cv, &customers]() {
 			std::random_device rd;
 			auto seed_data = std::array<int, std::mt19937::state_size> {};
@@ -4010,7 +4011,7 @@ int main(void) {
 		std::mt19937 eng(seq);
 		std::uniform_int_distribution<> ud(200, 500);
 
-		for (int i = 1; i <= 100; i++) {
+		for (int i = 1; i <= 25; i++) {
 			customer c(tm.next());
 			customers.push(c);
 
@@ -4027,4 +4028,858 @@ int main(void) {
 	store.join();
 
 	for (auto& desk : desks) desk.join();
+}
+*/
+
+/*
+// 67 패스워드 검증
+
+#include <string>
+#include <string_view>
+#include <memory>
+#include <assert.h>
+
+class password_validator {
+public:
+	virtual bool validate(std::string_view password) = 0;
+	virtual ~password_validator() {}
+};
+
+class length_validator final : public password_validator {
+public:
+	length_validator(unsigned int min_length) :
+		length(min_length) {
+	}
+
+	virtual bool validate(std::string_view password) override {
+		return password.length() >= length;
+	}
+
+private:
+	unsigned int length;
+};
+
+class password_validator_decorator : public password_validator {
+public:
+	explicit password_validator_decorator(std::unique_ptr<password_validator> validator) :
+		inner(std::move(validator)) {
+	}
+
+	virtual bool validate(std::string_view password) override {
+		return inner->validate(password);
+	}
+
+private:
+	std::unique_ptr<password_validator> inner;
+};
+
+class digit_password_validator final : public password_validator_decorator {
+public:
+	explicit digit_password_validator(std::unique_ptr<password_validator> validator) :
+		password_validator_decorator(std::move(validator)) {
+	}
+
+	virtual bool validate(std::string_view password) override {
+		if (!password_validator_decorator::validate(password))
+			return false;
+
+		return password.find_first_of("0123456789") != std::string::npos;
+	}
+};
+
+class case_password_validator final : public password_validator_decorator {
+public:
+	explicit case_password_validator(std::unique_ptr<password_validator> validator) :
+		password_validator_decorator(std::move(validator)) {
+	}
+
+	virtual bool validate(std::string_view password) override {
+		if (!password_validator_decorator::validate(password))
+			return false;
+
+		bool haslower = false;
+		bool hasupper = false;
+
+		for (size_t i = 0; i < password.length() && !(hasupper && haslower); ++i) {
+			if (islower(password[i])) haslower = true;
+			else if (isupper(password[i])) hasupper = true;
+		}
+
+		return haslower && hasupper;
+	}
+};
+
+class symbol_password_validator final : public password_validator_decorator {
+public:
+	explicit symbol_password_validator(std::unique_ptr<password_validator> validator) :
+		password_validator_decorator(std::move(validator)) {
+	}
+
+	virtual bool validate(std::string_view password) override {
+		if (!password_validator_decorator::validate(password))
+			return false;
+
+		return password.find_first_of("!@#$%^&*(){}[]?<>") != std::string::npos;
+	}
+};
+
+
+int main(void) {
+	{
+		auto validator = std::make_unique<length_validator>(8);
+
+		assert(validator->validate("abc123!@#"));
+		assert(!validator->validate("abc123"));
+	}
+
+	{
+		auto validator = std::make_unique<digit_password_validator>(
+			std::make_unique<length_validator>(8));
+
+		assert(validator->validate("abc123!@#"));
+		assert(!validator->validate("abcde!@#"));
+	}
+
+	{
+		auto validator = std::make_unique<case_password_validator>(
+			std::make_unique<digit_password_validator>(
+				std::make_unique<length_validator>(8)));
+
+		assert(validator->validate("Abc123!@#"));
+		assert(!validator->validate("abc123!@#"));
+	}
+
+	{
+		auto validator = std::make_unique<symbol_password_validator>(
+			std::make_unique<case_password_validator>(
+				std::make_unique<digit_password_validator>(
+					std::make_unique<length_validator>(8))));
+
+		assert(validator->validate("Abc123!@#"));
+		assert(!validator->validate("Abc123567"));
+	}
+}
+*/
+
+/*
+// 68 임의의 패스워드 생성
+
+#include<iostream>
+#include<string>
+#include<memory>
+#include<random>
+#include<array>
+#include<algorithm>
+
+class password_generator {
+public:
+	virtual std::string generate() = 0;
+
+	virtual std::string allowed_chars() const = 0;
+	virtual size_t length() const = 0;
+
+	virtual void add(std::unique_ptr<password_generator> generator) = 0;
+
+	virtual ~password_generator(){}
+};
+
+class basic_password_generator : public password_generator {
+	size_t len;
+public:
+	explicit basic_password_generator(const size_t len) noexcept : len(len){}
+
+	virtual std::string generate() override
+	{throw std::runtime_error("not implemented");}
+
+	virtual void add(std::unique_ptr<password_generator>) override
+	{throw std::runtime_error("not implemented");}
+
+	virtual size_t length() const noexcept override final
+	{return len;}
+};
+
+class digit_generator : public basic_password_generator {
+public:
+	explicit digit_generator(const size_t len) noexcept
+		: basic_password_generator(len) {
+	}
+
+	virtual std::string allowed_chars() const override 
+	{return "0123456789";}
+};
+
+
+class symbol_generator : public basic_password_generator {
+public:
+	explicit symbol_generator(const size_t len) noexcept
+		: basic_password_generator(len) {
+	}
+
+	virtual std::string allowed_chars() const override 		
+	{return "!@#$%^&*(){}[]?<>";}
+};
+
+class upper_letter_generator : public basic_password_generator {
+public:
+	explicit upper_letter_generator(const size_t len) noexcept
+		:basic_password_generator(len){ }
+
+	virtual std::string allowed_chars() const override
+	{return "ABCDEFGHIJKLMNOPQRSTUVXYWZ";}
+};
+
+class lower_letter_generator : public basic_password_generator {
+public:
+	explicit lower_letter_generator(const size_t len) noexcept
+		: basic_password_generator(len) {}
+
+	virtual std::string allowed_chars() const override 		
+	{return "abcdefghijklmnopqrstuvxywz";}
+};
+
+class composite_password_generator : public password_generator {
+	virtual std::string allowed_chars() const override 		
+	{throw std::runtime_error("not implemented"); };
+	virtual size_t length() const override 				
+	{throw std::runtime_error("not implemented"); };
+public:
+	composite_password_generator() {
+		auto seed_data = std::array<int, std::mt19937::state_size>{};
+		std::generate(std::begin(seed_data), std::end(seed_data), std::ref(rd));
+		std::seed_seq seq(std::begin(seed_data), std::end(seed_data));
+		eng.seed(seq);
+	}
+
+	virtual std::string generate() override {
+		std::string password;
+		for (auto& generator : generators) {
+			std::string chars = generator->allowed_chars();
+			std::uniform_int_distribution<> ud(0, static_cast<int>(chars.length() - 1));
+
+			for (size_t i = 0; i < generator->length(); ++i)
+				password += chars[ud(eng)];
+		}
+
+		std::shuffle(std::begin(password), std::end(password), eng);
+
+		return password;
+	}
+
+	virtual void add(std::unique_ptr<password_generator> generator) override {
+		generators.push_back(std::move(generator));
+	}
+private:
+	std::random_device rd;
+	std::mt19937 eng;
+	std::vector<std::unique_ptr<password_generator>> generators;
+};
+
+int main(void) {
+	composite_password_generator generator;
+	generator.add(std::make_unique<symbol_generator>(2));
+	generator.add(std::make_unique<digit_generator>(2));
+	generator.add(std::make_unique<upper_letter_generator>(2));
+	generator.add(std::make_unique<lower_letter_generator>(4));
+
+	auto password = generator.generate();
+	std::cout << password << std::endl;
+}
+*/
+
+/*
+// 69 사회보장번호 생성
+
+#include <iostream>
+#include <string>
+#include <sstream>
+#include <string_view>
+#include <random>
+#include <array>
+#include <map>
+#include <memory>
+#include <algorithm>
+#include <numeric>
+#include <assert.h>
+
+enum class sex_type{female,male};
+
+class social_number_generator {
+protected:
+	virtual int sex_digit(const sex_type sex) const noexcept = 0;
+	virtual int next_random(const unsigned year, const unsigned month, const unsigned day) = 0;
+	virtual int modulo_value() const noexcept = 0;
+
+	social_number_generator(const int min, const int max) :ud(min, max) {
+		std::random_device rd;
+		auto seed_data = std::array<int, std::mt19937::state_size> {};
+		std::generate(std::begin(seed_data), std::end(seed_data), std::ref(rd));
+		std::seed_seq seq(std::begin(seed_data), std::end(seed_data));
+		eng.seed(seq);
+	}
+
+public:
+	std::string generate(const sex_type sex, const unsigned year, const unsigned month, const unsigned day) {
+		std::stringstream snumber;
+		
+		snumber << sex_digit(sex);
+		snumber << year << month << day;
+		snumber << next_random(year, month, day);
+
+		auto number = snumber.str();
+		auto index = number.length();
+		auto sum = std::accumulate(std::begin(number), std::end(number), 0u,
+			[&index](const unsigned int s, const char c) {return s + static_cast<unsigned int>(index-- * (c - '0')); });
+
+		auto rest = sum % modulo_value();
+		snumber << modulo_value() - rest;
+
+		return snumber.str();
+	}
+
+	virtual ~social_number_generator(){}
+
+protected:
+	std::map<unsigned, int> cache;
+	std::mt19937 eng;
+	std::uniform_int_distribution<> ud;
+};
+
+class southeria_social_number_generator final : public social_number_generator {
+public:
+	southeria_social_number_generator():
+		social_number_generator(1000,9999){ }
+
+protected:
+	virtual int sex_digit(const sex_type sex) const noexcept override {
+		if (sex == sex_type::female) return 1;
+		else return 2;
+	}
+
+	virtual int next_random(const unsigned year, const unsigned month, const unsigned day) override {
+		auto key = year * 10000 + month * 100 + day;
+
+		while (true) {
+			auto number = ud(eng);
+			auto pos = cache.find(number);
+			if (pos == std::end(cache)) {
+				cache[key] = number;
+				return number;
+			}
+		}
+	}
+
+	virtual int modulo_value() const noexcept override {
+		return 1;;
+	}
+};
+
+class northeria_social_number_generator final : public social_number_generator {
+public:
+	northeria_social_number_generator():
+		social_number_generator(10000,99999){ }
+
+protected:
+	virtual int sex_digit(const sex_type sex) const noexcept override {
+		if (sex == sex_type::female) return 9;
+		else return 7;
+	}
+
+	virtual int next_random(const unsigned year, const unsigned month, const unsigned day) override {
+		auto key = year * 10000 + month * 100 + day;
+
+		while (true) {
+			auto number = ud(eng);
+			auto pos = cache.find(number);
+			if (pos == std::end(cache)) {
+				cache[key] = number;
+				return number;
+			}
+		}
+	}
+
+	virtual int modulo_value() const noexcept override {
+		return 11;
+	}
+};
+
+class social_number_generator_factory {
+public:
+	social_number_generator_factory() {
+		generators["northeria"] = std::make_unique<northeria_social_number_generator>();
+		generators["southeria"] = std::make_unique<southeria_social_number_generator>();
+	}
+
+	social_number_generator* get_generator(std::string_view country) const {
+		auto it = generators.find(country.data());
+		if (it != std::end(generators))
+			return it->second.get();
+
+		throw std::runtime_error("invalid country");
+	}
+
+private:
+	std::map<std::string, std::unique_ptr<social_number_generator>> generators;
+};
+
+int main() {
+	social_number_generator_factory factory;
+
+	auto sn1 = factory.get_generator("northeria")->generate(sex_type::female, 2017, 12, 25);
+	auto sn2 = factory.get_generator("northeria")->generate(sex_type::female, 2017, 12, 25);
+	auto sn3 = factory.get_generator("northeria")->generate(sex_type::male, 2017, 12, 25);
+
+	auto ss1 = factory.get_generator("southeria")->generate(sex_type::female, 2017, 12, 25);
+	auto ss2 = factory.get_generator("southeria")->generate(sex_type::female, 2017, 12, 25);
+	auto ss3 = factory.get_generator("southeria")->generate(sex_type::male, 2017, 12, 25);
+}
+*/
+
+/*
+// 70 승인 시스템
+
+#include<iostream>
+#include<string>
+#include<string_view>
+#include<memory>
+
+class role {
+public:
+	virtual double approval_limit() const noexcept = 0;
+	virtual ~role() {}
+};
+
+class employee_role : public role {
+public:
+	virtual double approval_limit() const noexcept override {
+		return 1000;
+	}
+};
+
+class team_manager_role : public role {
+public:
+	virtual double approval_limit() const noexcept override {
+		return 10000;
+	}
+};
+
+class department_manager_role : public role {
+public:
+	virtual double approval_limit() const noexcept override {
+		return 100000;
+	}
+};
+
+class president_role : public role {
+public:
+	virtual double approval_limit() const noexcept override {
+		return std::numeric_limits<double>::max();
+	}
+};
+
+
+struct expense {
+	double      amount;
+	std::string description;
+
+	expense(const double amount, std::string_view desc) :
+		amount(amount), description(desc) {
+	}
+};
+
+class employee {
+public:
+	explicit employee(std::string_view name, std::unique_ptr<role> ownrole):
+		name(name),own_role(std::move(ownrole)){ }
+
+	void set_direct_manager(std::shared_ptr<employee> manager) {
+		direct_manager = manager;
+	}
+
+	void approve(const expense& e) {
+		if (e.amount <= own_role->approval_limit())
+			std::cout << name << " approved expense '" << e.description << "', cost=" << e.amount << std::endl;
+
+		else if (direct_manager != nullptr)
+			direct_manager->approve(e);
+	}
+
+private:
+	std::string                name;
+	std::unique_ptr<role>      own_role;
+	std::shared_ptr<employee>  direct_manager;
+};
+
+int main(void) {
+	auto john = std::make_shared<employee>("john smith", std::make_unique<employee_role>());
+	auto robert = std::make_shared<employee>("robert booth", std::make_unique<team_manager_role>());
+	auto david = std::make_shared<employee>("david jones", std::make_unique<department_manager_role>());
+	auto cecil = std::make_shared<employee>("cecil williamson", std::make_unique<president_role>());
+
+	john->set_direct_manager(robert);
+	robert->set_direct_manager(david);
+	david->set_direct_manager(cecil);
+
+	john->approve(expense{ 500, "magazins" });
+	john->approve(expense{ 5000, "hotel accomodation" });
+	john->approve(expense{ 50000, "conference costs" });
+	john->approve(expense{ 200000, "new lorry" });
+}
+*/
+
+/*
+// 71 관측 가능한 벡터 컨테이너
+
+#include<iostream>
+#include<string>
+#include<string_view>
+#include<vector>
+#include<algorithm>
+
+enum class collection_action {
+	add,
+	remove,
+	clear,
+	assign
+};
+
+std::string to_string(const collection_action action) {
+	switch (action) {
+	case collection_action::add: return "add";
+	case collection_action::remove: return "remove";
+	case collection_action::clear: return "clear";
+	case collection_action::assign: return "assign";
+	}
+}
+
+struct collection_change_notification {
+	collection_action action;
+	std::vector<size_t> item_indexes;
+};
+
+class collection_observer {
+public:
+	virtual void collection_changed(collection_change_notification notification) = 0;
+	virtual ~collection_observer() {}
+};
+
+template <typename T, class Allocator = std::allocator<T>>
+class observable_vector final {
+	typedef typename std::vector<T, Allocator>::size_type size_type;
+public:
+	observable_vector() noexcept(noexcept(Allocator()))
+		: observable_vector(Allocator()) {
+	}
+	explicit observable_vector(const Allocator& alloc) noexcept
+		: data(alloc) {
+	}
+	observable_vector(size_type count, const T& value, const Allocator& alloc = Allocator())
+		: data(count, value, alloc) {
+	}
+	explicit observable_vector(size_type count, const Allocator& alloc = Allocator())
+		:data(count, alloc) {
+	}
+	observable_vector(observable_vector&& other) noexcept
+		:data(other.data) {
+	}
+	observable_vector(observable_vector&& other, const Allocator& alloc)
+		:data(other.data, alloc) {
+	}
+	observable_vector(std::initializer_list<T> init,
+		const Allocator& alloc = Allocator())
+		:data(init, alloc) {
+	}
+	template<class InputIt>
+	observable_vector(InputIt first, InputIt last, const Allocator& alloc = Allocator())
+		: data(first, last, alloc) {
+	}
+
+	observable_vector& operator=(const observable_vector& other) {
+		if (this != &other) {
+			data = other.data;
+
+			for (auto o : observers) {
+				if (o != nullptr) {
+					o->collection_changed({
+					   collection_action::assign,
+					   std::vector<size_t> {}
+						});
+				}
+			}
+		}
+
+		return *this;
+	}
+
+	observable_vector& operator=(observable_vector&& other) {
+		if (this != &other) {
+			data = std::move(other.data);
+
+			for (auto o : observers) {
+				if (o != nullptr) {
+					o->collection_changed({
+					   collection_action::assign,
+					   std::vector<size_t> {}
+						});
+				}
+			}
+		}
+
+		return *this;
+	}
+
+	void push_back(T&& value) {
+		data.push_back(value);
+
+		for (auto o : observers) {
+			if (o != nullptr) {
+				o->collection_changed({
+				   collection_action::add,
+				   std::vector<size_t> {data.size() - 1}
+					});
+			}
+		}
+	}
+
+	void pop_back() {
+		data.pop_back();
+
+		for (auto o : observers) {
+			if (o != nullptr) {
+				o->collection_changed({
+				   collection_action::remove,
+				   std::vector<size_t> {data.size() + 1}
+					});
+			}
+		}
+	}
+
+	void clear() noexcept {
+		data.clear();
+
+		for (auto o : observers) {
+			if (o != nullptr) {
+				o->collection_changed({
+				   collection_action::clear,
+				   std::vector<size_t> {}
+					});
+			}
+		}
+	}
+
+	size_type size() const noexcept {
+		return data.size();
+	}
+
+	[[nodiscard]] bool empty() const noexcept {
+		return data.empty();
+	}
+
+	void add_observer(collection_observer* const o) {
+		observers.push_back(o);
+	}
+
+	void remove_observer(const collection_observer* const o) {
+		observers.erase(std::remove(std::begin(observers), std::end(observers), o),
+			std::end(observers));
+	}
+
+private:
+	std::vector<T, Allocator> data;
+	std::vector<collection_observer*> observers;
+};
+
+class observer : public collection_observer {
+public:
+	virtual void collection_changed(collection_change_notification notification) override {
+		std::cout << "action: " << to_string(notification.action);
+		if (!notification.item_indexes.empty()) {
+			std::cout << ", indexes: ";
+			for (auto i : notification.item_indexes)
+				std::cout << i << ' ';
+		}
+		std::cout << std::endl;
+	}
+};
+
+int main(void) {
+	observable_vector<int> v;
+	observer o;
+
+	v.add_observer(&o);
+
+	v.push_back(1);
+	v.push_back(2);
+
+	v.pop_back();
+
+	v.clear();
+
+	v.remove_observer(&o);
+
+	v.push_back(3);
+	v.push_back(4);
+
+	v.add_observer(&o);
+
+	observable_vector<int> v2{ 1,2,3 };
+	v = v2;
+
+	v = observable_vector<int>{ 7,8,9 };
+}
+*/
+
+#include<iostream>
+#include<string>
+#include<string_view>
+#include<vector>
+#include<cmath>
+#include<assert.h>
+
+inline bool are_equal(const double d1, const double d2, const double diff = 0.001) {
+	return std::abs(d1 - d2) <= diff;
+}
+
+
+struct discount_type {
+	virtual double discount_percent(const double price, const double quantity) const noexcept = 0;
+	virtual ~discount_type(){}
+};
+
+struct fixed_discount final : public discount_type {
+	explicit fixed_discount(const double discount) noexcept : discount(discount) {}
+	virtual double discount_percent(const double , const double) const noexcept { return discount; }
+
+private:
+	double discount;
+};
+
+struct volume_discount final : public discount_type {
+	explicit volume_discount(const double  quantity, const double discount) noexcept : discount(discount), min_quantity(quantity) {}
+	virtual double discount_percent(const double, const double quantity) const noexcept { return quantity >= min_quantity ? discount : 0; }
+
+private:
+	double discount;
+	double min_quantity;
+};
+
+struct price_discount : public discount_type {
+	explicit price_discount(const double price, const double discount) noexcept : discount(discount), min_total_price(price) {}
+	virtual double discount_percent(const double price, const double quantity) const noexcept { return price * quantity >= min_total_price ? discount : 0; }
+
+private:
+	double discount;
+	double min_total_price;
+};
+
+struct amount_discount : public discount_type {
+	explicit amount_discount(const double price, const double discount) noexcept : discount(discount), min_total_price(price) {}
+	virtual double discount_percent(const double price, const double) const noexcept { return price >= min_total_price ? discount : 0; }
+
+private:
+	double discount;
+	double min_total_price;
+};
+
+struct customer {
+	std::string name;
+	discount_type* discount;
+};
+
+enum class article_unit {
+	piece, kg, meter, sqmeter, cmeter, liter
+};
+
+struct article {
+	int            id;
+	std::string    name;
+	double         price;
+	article_unit   unit;
+	discount_type* discount;
+};
+
+struct order_line {
+	article        product;
+	int            quantity;
+	discount_type* discount;
+};
+
+struct order {
+	int                     id;
+	customer* buyer;
+	std::vector<order_line> lines;
+	discount_type* discount;
+};
+
+struct price_calculator {
+	virtual double calculate_price(order const& o) = 0;
+};
+
+struct cumulative_price_calculator : public price_calculator {
+	virtual double calculate_price(order const& o) override {
+		double price = 0;
+
+		for (auto ol : o.lines) {
+			double line_price = ol.product.price * ol.quantity;
+
+			if (ol.product.discount != nullptr)
+				line_price *= (1.0 - ol.product.discount->discount_percent(ol.product.price, ol.quantity));
+
+			if (ol.discount != nullptr)
+				line_price *= (1.0 - ol.discount->discount_percent(ol.product.price, ol.quantity));
+
+			if (o.buyer != nullptr && o.buyer->discount != nullptr)
+				line_price *= (1.0 - o.buyer->discount->discount_percent(ol.product.price, ol.quantity));
+
+			price += line_price;
+		}
+
+		if (o.discount != nullptr)
+			price *= (1.0 - o.discount->discount_percent(price, 0));
+
+		return price;
+	}
+};
+
+int main() {
+	fixed_discount d1(0.1);
+	volume_discount d2(10, 0.15);
+	price_discount d3(100, 0.05);
+	amount_discount d4(100, 0.05);
+
+	customer c1{ "default", nullptr };
+	customer c2{ "john", &d1 };
+	customer c3{ "joane", &d3 };
+
+	article a1{ 1, "pen", 5, article_unit::piece, nullptr };
+	article a2{ 2, "expensive pen", 15, article_unit::piece, &d1 };
+	article a3{ 3, "scissors", 10, article_unit::piece, &d2 };
+
+	cumulative_price_calculator calc;
+
+	order o1{ 101, &c1, {{a1, 1, nullptr}}, nullptr };
+	assert(are_equal(calc.calculate_price(o1), 5));
+
+	order o2{ 102, &c2, {{a1, 1, nullptr}}, nullptr };
+	assert(are_equal(calc.calculate_price(o2), 4.5));
+
+	order o3{ 103, &c1, {{a2, 1, nullptr}}, nullptr };
+	assert(are_equal(calc.calculate_price(o3), 13.5));
+
+	order o4{ 104, &c2, {{a2, 1, nullptr}}, nullptr };
+	assert(are_equal(calc.calculate_price(o4), 12.15));
+
+	order o5{ 105, &c1, {{a3, 1, nullptr}}, nullptr };
+	assert(are_equal(calc.calculate_price(o5), 10));
+
+	order o6{ 106, &c1, {{a3, 15, nullptr}}, nullptr };
+	assert(are_equal(calc.calculate_price(o6), 127.5));
+
+	order o7{ 107, &c3, {{a3, 15, nullptr}}, nullptr };
+	assert(are_equal(calc.calculate_price(o7), 121.125));
+
+	order o8{ 108, &c3, {{a2, 20, &d1}}, nullptr };
+	assert(are_equal(calc.calculate_price(o8), 230.85));
+
+	order o9{ 109, &c3, {{a2, 20, &d1}}, &d4 };
+	assert(are_equal(calc.calculate_price(o9), 219.3075));
 }
