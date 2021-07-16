@@ -4728,6 +4728,9 @@ int main(void) {
 }
 */
 
+// 72 할인가 적용해 최종 가격 계산
+
+/*
 #include<iostream>
 #include<string>
 #include<string_view>
@@ -4882,4 +4885,274 @@ int main() {
 
 	order o9{ 109, &c3, {{a2, 20, &d1}}, &d4 };
 	assert(are_equal(calc.calculate_price(o9), 219.3075));
+}
+*/
+
+/*
+// 73 XML 직렬화 및 역직렬화
+
+#include<string>
+#include<string_view>
+#include<assert.h>
+
+#include "pugixml.hpp"
+#include "movies.h"
+
+void serialize(const movie_list& movies, std::string_view filepath) {
+
+	pugi::xml_document doc;
+
+	auto root = doc.append_child("movies");
+
+	for (const auto& m : movies) {
+		auto movie_node = root.append_child("movie");
+
+		movie_node.append_attribute("id").set_value(m.id);
+		movie_node.append_attribute("title").set_value(m.title.c_str());
+		movie_node.append_attribute("year").set_value(m.year);
+		movie_node.append_attribute("length").set_value(m.length);
+
+		auto cast_node = movie_node.append_child("cast");
+		for (const auto& c : m.cast) {
+			auto node = cast_node.append_child("role");
+			node.append_attribute("star").set_value(c.actor.c_str());
+			node.append_attribute("name").set_value(c.role.c_str());
+		}
+
+		auto directors_node = movie_node.append_child("directors");
+		for (auto const& director : m.directors) {
+			directors_node.append_child("director")
+				.append_attribute("name").set_value(director.c_str());
+		}
+
+		auto writers_node = movie_node.append_child("writers");
+		for (auto const& writer : m.writers) {
+			writers_node.append_child("writer")
+				.append_attribute("name").set_value(writer.c_str());
+		}
+	}
+	doc.save_file(filepath.data());
+}
+
+movie_list deserialize(std::string_view filepath) {
+	pugi::xml_document doc;
+	movie_list movies;
+
+	auto result = doc.load_file(filepath.data());
+	if (result) {
+		auto root = doc.child("movies");
+		for (auto movie_node = root.child("movie"); movie_node; movie_node = movie_node.next_sibling("movie")) {
+			movie m;
+			m.id = movie_node.attribute("id").as_uint();
+			m.title = movie_node.attribute("title").as_string();
+			m.year = movie_node.attribute("year").as_uint();
+			m.length = movie_node.attribute("length").as_uint();
+
+			for (auto role_node : movie_node.child("cast").children("role")) {
+				m.cast.push_back(casting_role{
+					role_node.attribute("star").as_string(),
+					role_node.attribute("name").as_string()
+					});
+			}
+
+			for (auto director_node : movie_node.child("directors").children("director")) {
+				m.directors.push_back(director_node.attribute("name").as_string());
+			}
+
+			for (auto writer_node : movie_node.child("writers").children("writer")) {
+				m.writers.push_back(writer_node.attribute("name").as_string());
+			}
+			movies.push_back(m);
+		}
+	}
+
+	return movies;
+}
+
+int main() {
+	movie_list movies
+	{
+	   {
+		  11001,
+		  "The Matrix",
+		  1999,
+		  196,
+		  {
+			 {"Keanu Reeves", "Neo"},
+			 {"Laurence Fishburne", "Morpheus"},
+			 {"Carrie-Anne Moss", "Trinity"},
+			 {"Hugo Weaving", "Agent Smith"}
+		  },
+		  {"Lana Wachowski", "Lilly Wachowski"},
+		  {"Lana Wachowski", "Lilly Wachowski"},
+	   },
+	   {
+		  9871,
+		  "Forrest Gump",
+		  1994,
+		  202,
+		  {
+			 {"Tom Hanks", "Forrest Gump"},
+			 {"Sally Field", "Mrs. Gump"},
+			 {"Robin Wright","Jenny Curran"},
+			 {"Mykelti Williamson","Bubba Blue"}
+		  },
+		  {"Robert Zemeckis"},
+		  {"Winston Groom", "Eric Roth"},
+	   }
+	};
+
+	serialize(movies, "movies.xml");
+
+	auto result = deserialize("movies.xml");
+
+	assert(result.size() == 2);
+	assert(result[0].title == "The Matrix");
+	assert(result[1].title == "Forrest Gump");
+}
+*/
+
+/*
+// 74 XPath를 이용해 XML 데이터 선택
+#include <iostream>
+#include <string>
+#include <string_view>
+
+#include "pugixml.hpp"
+
+int main() {
+	std::string text = R"(
+<?xml version="1.0"?>
+<movies>
+	<movie id="11001" title="The Matrix" year="1999" length="196">
+		<cast>
+			<role star="Keanu Reeves" name="Neo" />
+			<role star="Laurence Fishburne" name="Morpheus" />
+			<role star="Carrie-Anne Moss" name="Trinity" />
+			<role star="Hugo Weaving" name="	Agent Smith" />
+		</cast>
+		<directors>
+			<director name="Lana Wachowski" />
+			<director name="Lilly Wachowski" />
+		</directors>
+		<writers>
+			<writer name="Lana Wachowski" />
+			<writer name="Lilly Wachowski" />
+		</writers>
+	</movie>
+	<movie id="9871" title="Forrest Gump" year="1994" length="202">
+		<cast>
+			<role star="Tom Hanks" name="Forrest Gump" />
+			<role star="Sally Field" name="Mrs. Gump" />
+			<role star="Robin Wright" name="Jenny Curran" />
+			<role star="Mykelti Williamson" name="Bubba Blue" />
+		</cast>
+		<directors>
+			<director name="Robert Zemeckis" />
+		</directors>
+		<writers>
+			<writer name="Winston Groom" />
+			<writer name="Eric Roth" />
+		</writers>
+	</movie>
+</movies>
+)";
+
+	pugi::xml_document doc;
+	if (doc.load_string(text.c_str())) {
+		try {
+			auto titles = doc.select_nodes("/movies/movie[@year>1995]");
+
+			for (auto it : titles) {
+				std::cout << it.node().attribute("title").as_string() << std::endl;
+			}
+		}
+		catch (pugi::xpath_exception const& e) {
+			std::cout << e.result().description() << std::endl;
+		}
+
+		try {
+			auto titles = doc.select_nodes("/movies/movie/cast/role[last()]");
+
+			for (auto it : titles) {
+				std::cout << it.node().attribute("star").as_string() << std::endl;
+			}
+		}
+		catch (pugi::xpath_exception const& e) {
+			std::cout << e.result().description() << std::endl;
+		}
+	}
+}
+*/
+
+// 75 데이터를 JSON으로 직렬화
+
+#include <iostream>
+#include <string_view>
+#include <fstream>
+
+#include "json.hpp"
+#include "movies.h"
+
+using json = nlohmann::json;
+
+void to_json(json& j, casting_role const& c) {
+	j = json{ {"star", c.actor}, {"name", c.role} };
+}
+
+void to_json(json& j, movie const& m) {
+	j = json::object({
+	   {"id", m.id},
+	   {"title", m.title},
+	   {"year", m.year},
+	   {"length", m.length},
+	   {"cast", m.cast },
+	   {"directors", m.directors},
+	   {"writers", m.writers}
+		});
+}
+
+void serialize(movie_list const& movies, std::string_view filepath) {
+	json jdata{ { "movies", movies } };
+
+	std::ofstream ofile(filepath.data());
+	if (ofile.is_open()) {
+		ofile << std::setw(2) << jdata << std::endl;
+	}
+}
+
+int main() {
+	movie_list movies
+	{
+	   {
+		  11001,
+		  "The Matrix",
+		  1999,
+		  196,
+		  {
+			 {"Keanu Reeves", "Neo"},
+			 {"Laurence Fishburne", "Morpheus"},
+			 {"Carrie-Anne Moss", "Trinity"},
+			 {"Hugo Weaving", "Agent Smith"}
+		  },
+		  {"Lana Wachowski", "Lilly Wachowski"},
+		  {"Lana Wachowski", "Lilly Wachowski"},
+	   },
+	   {
+		  9871,
+		  "Forrest Gump",
+		  1994,
+		  202,
+		  {
+			 {"Tom Hanks", "Forrest Gump"},
+			 {"Sally Field", "Mrs. Gump"},
+			 {"Robin Wright","Jenny Curran"},
+			 {"Mykelti Williamson","Bubba Blue"}
+		  },
+		  {"Robert Zemeckis"},
+		  {"Winston Groom", "Eric Roth"},
+	   }
+	};
+
+	serialize(movies, "movies.json");
 }
